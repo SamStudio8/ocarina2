@@ -2,33 +2,17 @@ import os
 import sys
 
 import json
+from . import util
 
 CLIENT_VERSION = "0.0.1"
 ENDPOINTS = {
-        "api.artifact.biosample.add": "api/v2/artifact/biosample/add/",
-        "api.process.sequencing.add": "api/v2/process/sequencing/add/",
+        "api.artifact.biosample.add": "/api/v2/artifact/biosample/add/",
+        "api.process.sequencing.add": "/api/v2/process/sequencing/add/",
 }
 
-def emit(base_endpoint, payload, to_uuid=None):
-    payload["key"] = conf.KEY
-    r = requests.post(conf.ENDPOINT + '/ocarina/api/' + base_endpoint + '/', json=payload)
-    print (r.json())
-    return r.json()
-
-def get_config():
-    config = None
-    config_path = os.path.expanduser("~/.ocarina")
-    if os.path.exists(config_path):
-        with open(config_path) as config_fh:
-            config = json.load(config_fh)
-            return config
-    else:
-        sys.stderr.write('''No configuration file found.\nCopy the command from below to initialise,\nthen edit the file and fill in the configration keys.\n''')
-        sys.stderr.write('''echo '{"MAJORA_DOMAIN": "https:\\...\", "MAJORA_USER": "", "MAJORA_TOKEN": ""}' > ~/.ocarina''')
-        sys.exit(1)
 
 def cli():
-    config = get_config()
+    config = util.get_config()
     print('''
                                  .@ 888S
                             ;@S8888:8%tX
