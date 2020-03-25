@@ -39,6 +39,23 @@ def cli():
     biosample_parser.add_argument("--swab-site")
     biosample_parser.set_defaults(func=wrap_single_biosample_emit)
 
+
+    library_parser = subparsers.add_parser("library", help="add a sequencing library by providing fields via the CLI")
+    lpg = library_parser.add_mutually_exclusive_group(required=True)
+    lpg.add_argument("--biosamples", nargs='+')
+    lpg.add_argument("--biosample", action='append', nargs=4,
+            metavar=('central_sample_id', 'library_source', 'library_selection', 'library_strategy'))
+
+    library_parser.add_argument("--apply-all-library", action='append', nargs=3,
+            metavar=('library_source', 'library_selection', 'library_strategy'))
+    library_parser.add_argument("--library-layout-config", required=True)
+    library_parser.add_argument("--library-name", required=True)
+    library_parser.add_argument("--library-seq-kit", required=True)
+    library_parser.add_argument("--library-seq-protocol", required=True)
+    library_parser.add_argument("--library-layout-insert-length")
+    library_parser.add_argument("--library-layout-read-length")
+    library_parser.set_defaults(func=wrap_library_emit)
+
     args = parser.parse_args()
     if not args.quiet:
         print('''
@@ -74,3 +91,41 @@ def wrap_single_biosample_emit(args):
         v_args,
     ]}
     util.emit(ENDPOINTS["api.artifact.biosample.add"], payload)
+
+def wrap_library_emit(args):
+    v_args = vars(args)
+    del v_args["func"]
+
+    print(args)
+    print(v_args)
+
+    if args.biosample:
+        submit_biosamples = []
+        for entry in args.biosample:
+            submit_biosamples.append({
+                "central_sample_id": entry[0],
+                "library_source": entry[1],
+                "library_selection": entry[1],
+                "library_strategy": entry[2],
+            })
+        del v_args["biosample"]
+
+    elif args.biosamples:
+        if not args.apply_all_library:
+            print("Use --apply-all-library with --biosamples")
+            sys.exit(2)
+
+        submit_biosamples = []
+        for entry in args.biosamples:
+            submit_biosamples.append({
+                "central_sample_id": entry,
+                "library_source": args.apply_all_library[0],
+                "library_selection": args.apply_all_library[1],
+                "library_strategy": args.apply_all_library[2],
+            })
+            del v_args["apply_all_library"]
+            del v_args["biosamples"]
+
+    v_args["biosamples"] = submit_biosamples
+    util.emit(ENDPOINTS["api.process.sequencing.add"], v_args)
+
