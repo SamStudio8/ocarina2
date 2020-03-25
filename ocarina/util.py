@@ -4,6 +4,8 @@ import sys
 import json
 import requests
 
+from . import client
+
 def get_config():
     config = None
     config_path = os.path.expanduser("~/.ocarina")
@@ -20,6 +22,8 @@ def emit(endpoint, payload):
     config = get_config()
     payload["username"] = config["MAJORA_USER"]
     payload["token"] = config["MAJORA_TOKEN"]
+    payload["client_name"] = "ocarina"
+    payload["client_version"] = client.CLIENT_VERSION
 
     r = requests.post(config["MAJORA_DOMAIN"] + endpoint + '/',
             headers = {"Content-Type": "application/json", "charset": "UTF-8"},

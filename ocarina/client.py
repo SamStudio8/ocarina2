@@ -38,7 +38,6 @@ def cli():
     biosample_parser.add_argument("--swab-site")
     biosample_parser.set_defaults(func=wrap_single_biosample_emit)
 
-
     args = parser.parse_args()
     if not args.quiet:
         print('''
