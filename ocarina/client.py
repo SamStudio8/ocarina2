@@ -9,6 +9,7 @@ import argparse
 CLIENT_VERSION = "0.0.3"
 ENDPOINTS = {
         "api.artifact.biosample.add": "/api/v2/artifact/biosample/add/",
+        "api.artifact.library.add": "/api/v2/artifact/library/add/",
         "api.process.sequencing.add": "/api/v2/process/sequencing/add/",
 }
 
@@ -46,7 +47,7 @@ def cli():
     lpg.add_argument("--biosample", action='append', nargs=4,
             metavar=('central_sample_id', 'library_source', 'library_selection', 'library_strategy'))
 
-    library_parser.add_argument("--apply-all-library", action='append', nargs=3,
+    library_parser.add_argument("--apply-all-library", nargs=3,
             metavar=('library_source', 'library_selection', 'library_strategy'))
     library_parser.add_argument("--library-layout-config", required=True)
     library_parser.add_argument("--library-name", required=True)
@@ -123,9 +124,9 @@ def wrap_library_emit(args):
                 "library_selection": args.apply_all_library[1],
                 "library_strategy": args.apply_all_library[2],
             })
-            del v_args["apply_all_library"]
-            del v_args["biosamples"]
+        del v_args["apply_all_library"]
+        del v_args["biosamples"]
 
     v_args["biosamples"] = submit_biosamples
-    util.emit(ENDPOINTS["api.process.sequencing.add"], v_args)
+    util.emit(ENDPOINTS["api.artifact.library.add"], v_args)
 
