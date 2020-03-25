@@ -6,7 +6,6 @@ from . import util
 
 import argparse
 
-CLIENT_VERSION = "0.0.3"
 ENDPOINTS = {
         "api.artifact.biosample.add": "/api/v2/artifact/biosample/add/",
         "api.artifact.library.add": "/api/v2/artifact/library/add/",
@@ -57,6 +56,18 @@ def cli():
     library_parser.add_argument("--library-layout-read-length")
     library_parser.set_defaults(func=wrap_library_emit)
 
+
+    sequencing_parser = subparsers.add_parser("sequencing", help="add a single sequencing run by providing fields via the CLI")
+    sequencing_parser.add_argument("--library-name", required=True)
+    sequencing_parser.add_argument("--sequencing-id", required=True)
+    sequencing_parser.add_argument("--instrument-make", required=True)
+    sequencing_parser.add_argument("--instrument-model", required=True)
+    sequencing_parser.add_argument("--flowcell-type")
+    sequencing_parser.add_argument("--flowcell-id")
+    sequencing_parser.add_argument("--start-time")
+    sequencing_parser.add_argument("--end-time")
+    sequencing_parser.set_defaults(func=wrap_sequencing_emit)
+
     args = parser.parse_args()
     if not args.quiet:
         print('''
@@ -92,6 +103,18 @@ def wrap_single_biosample_emit(args):
         v_args,
     ]}
     util.emit(ENDPOINTS["api.artifact.biosample.add"], payload)
+
+def wrap_sequencing_emit(args):
+    v_args = vars(args)
+    del v_args["func"]
+
+    payload = {
+        "library_name": v_args["library_name"],
+        "runs": [
+            v_args,
+        ]
+    }
+    util.emit(ENDPOINTS["api.process.sequencing.add"], payload)
 
 def wrap_library_emit(args):
     v_args = vars(args)
