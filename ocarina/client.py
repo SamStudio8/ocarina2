@@ -69,5 +69,4 @@ def wrap_single_biosample_emit(args):
     payload = {"biosamples": [
         v_args,
     ]}
-    r = util.emit(ENDPOINTS["api.artifact.biosample.add"], payload)
-    print(r)
+    util.emit(ENDPOINTS["api.artifact.biosample.add"], payload)
