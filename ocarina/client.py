@@ -6,7 +6,7 @@ from . import util
 
 import argparse
 
-CLIENT_VERSION = "0.0.1"
+CLIENT_VERSION = "0.0.3"
 ENDPOINTS = {
         "api.artifact.biosample.add": "/api/v2/artifact/biosample/add/",
         "api.process.sequencing.add": "/api/v2/process/sequencing/add/",

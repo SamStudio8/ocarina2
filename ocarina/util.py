@@ -5,6 +5,7 @@ import json
 import requests
 
 from . import client
+from . import version
 
 def get_config():
     config = None
@@ -23,7 +24,7 @@ def emit(endpoint, payload):
     payload["username"] = config["MAJORA_USER"]
     payload["token"] = config["MAJORA_TOKEN"]
     payload["client_name"] = "ocarina"
-    payload["client_version"] = client.CLIENT_VERSION
+    payload["client_version"] = version.__version__
 
     r = requests.post(config["MAJORA_DOMAIN"] + endpoint + '/',
             headers = {"Content-Type": "application/json", "charset": "UTF-8"},

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import setuptools
+from ocarina import version
 
 requirements = [
     "requests",
@@ -13,7 +14,7 @@ test_requirements = [
 
 setuptools.setup(
     name="ocarina",
-    version="0.0.3",
+    version=version.__version__,
     url="https://github.com/samstudio8/ocarina",
 
     description="",
