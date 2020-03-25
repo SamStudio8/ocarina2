@@ -13,7 +13,7 @@ test_requirements = [
 
 setuptools.setup(
     name="ocarina",
-    version="0.0.1",
+    version="0.0.3",
     url="https://github.com/samstudio8/ocarina",
 
     description="",

@@ -2,6 +2,7 @@ import os
 import sys
 
 import json
+import requests
 
 def get_config():
     config = None
@@ -15,11 +16,12 @@ def get_config():
         sys.stderr.write('''echo '{"MAJORA_DOMAIN": "https:\\...\", "MAJORA_USER": "", "MAJORA_TOKEN": ""}' > ~/.ocarina''')
         sys.exit(1)
 
-def emit(task, payload):
-    payload["username"] = config["MAJORA_USERNAME"]
+def emit(endpoint, payload):
+    config = get_config()
+    payload["username"] = config["MAJORA_USER"]
     payload["token"] = config["MAJORA_TOKEN"]
 
-    r = requests.post(config["MAJORA_DOMAIN"] + ENDPOINTS[task] + '/',
+    r = requests.post(config["MAJORA_DOMAIN"] + endpoint + '/',
             headers = {"Content-Type": "application/json", "charset": "UTF-8"},
             json = payload,
     )

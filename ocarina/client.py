@@ -4,6 +4,8 @@ import sys
 import json
 from . import util
 
+import argparse
+
 CLIENT_VERSION = "0.0.1"
 ENDPOINTS = {
         "api.artifact.biosample.add": "/api/v2/artifact/biosample/add/",
@@ -34,3 +36,38 @@ X8%%S:              .8 8S888    :8.88S@:
    ;t 8X.8;%8 8%
 ''')
     print("Hello %s." % config["MAJORA_USER"])
+
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers()
+
+    biosample_parser = subparsers.add_parser("biosample", help="add a single biosample by providing fields via the CLI")
+    biosample_parser.add_argument("--adm1", required=True)
+    biosample_parser.add_argument("--central-sample-id", "--coguk-sample-id", required=True)
+    biosample_parser.add_argument("--collection-date", required=True)
+    biosample_parser.add_argument("--source-age", required=True)
+    biosample_parser.add_argument("--source-sex", required=True)
+    biosample_parser.add_argument("--override-heron", action="store_true")
+    biosample_parser.add_argument("--secondary-accession", "--gisaid-accession")
+    biosample_parser.add_argument("--secondary-identifier", "--gisaid-identifier")
+    biosample_parser.add_argument("--adm2")
+    biosample_parser.add_argument("--biosample-source-id")
+    biosample_parser.add_argument("--collecting-org")
+    biosample_parser.add_argument("--root-sample-id")
+    biosample_parser.add_argument("--sample-type")
+    biosample_parser.add_argument("--sender-sample-id", "--local-sample-id")
+    biosample_parser.add_argument("--swab-site")
+    biosample_parser.set_defaults(func=wrap_single_biosample_emit)
+
+
+    args = parser.parse_args()
+    args.func(args)
+
+def wrap_single_biosample_emit(args):
+    v_args = vars(args)
+    del v_args["func"]
+
+    payload = {"biosamples": [
+        v_args,
+    ]}
+    r = util.emit(ENDPOINTS["api.artifact.biosample.add"], payload)
+    print(r)
