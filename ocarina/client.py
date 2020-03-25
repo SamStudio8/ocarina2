@@ -129,8 +129,8 @@ def wrap_library_emit(args):
             submit_biosamples.append({
                 "central_sample_id": entry[0],
                 "library_source": entry[1],
-                "library_selection": entry[1],
-                "library_strategy": entry[2],
+                "library_selection": entry[2],
+                "library_strategy": entry[3],
             })
         del v_args["biosample"]
 
