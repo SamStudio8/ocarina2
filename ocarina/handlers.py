@@ -1,4 +1,4 @@
-from subprocess import check_output
+from subprocess import getoutput
 import os
 import sys
 
@@ -26,13 +26,24 @@ class BamFileHandler(FiletypeHandler):
     def check_integrity(self):
 
         self.alignments = -1
+        self.reference = None
         has_index = None
         has_indate_index = None
 
         try:
-            p = check_output("samtools view -c -F4 %s" % self.path, shell=True)
+            p = getoutput("samtools view -c -F4 %s" % self.path)
             self.alignments = int(p.split("\n")[0].strip())
         except Exception as e:
+            print(e)
+            pass
+
+        try:
+            p = getoutput("samtools view -H %s | grep '^@SQ'" % self.path)
+            refs = p.split("\n")
+            if len(refs) == 1:
+                self.reference = refs[0].split('\t')[1].replace("SN:", "")
+        except Exception as e:
+            print(e)
             pass
 
         if os.path.exists(self.path + ".bai"):
@@ -55,7 +66,9 @@ class BamFileHandler(FiletypeHandler):
     def make_metadata(self):
         metadata = {}
         if self.alignments > -1:
-            metadata["n_alignments"] = self.alignments
+            metadata["n_mapped_alignments"] = self.alignments
+        if self.reference:
+            metadata["reference"] = self.reference
         self.metadata = metadata
 
 
