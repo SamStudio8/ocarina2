@@ -78,7 +78,7 @@ def cli():
     digitalresource_parser = subparsers.add_parser("file", parents=[parser], add_help=False,
             help="register a local digital resource (file) over the Majora API")
     digitalresource_parser.add_argument("--path", required=True)
-    digitalresource_parser.add_argument("--type", required=True)
+    digitalresource_parser.add_argument("--type", required=True) #TODO --reads | --consensus | --alignment?
     digitalresource_parser.add_argument("--i-have-bad-files", action="store_true")
     digitalresource_parser.set_defaults(func=wrap_digitalresource_emit)
 
