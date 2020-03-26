@@ -110,7 +110,7 @@ X8%%S:              .8 8S888    :8.88S@:
                 key, name, value = entry
                 if key not in metadata:
                     metadata[key] = {}
-                metadata[key] = value
+                metadata[key][name] = value
         args.func(args, metadata)
 
 def wrap_single_biosample_emit(args, metadata={}):
