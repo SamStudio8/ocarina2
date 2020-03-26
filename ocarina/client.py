@@ -78,7 +78,7 @@ def cli():
     digitalresource_parser = subparsers.add_parser("file", parents=[parser], add_help=False,
             help="register a local digital resource (file) over the Majora API")
     digitalresource_parser.add_argument("--path", required=True)
-    digitalresource_parser.add_argument("--force", action="store_true")
+    digitalresource_parser.add_argument("--i-have-bad-files", action="store_true")
     digitalresource_parser.set_defaults(func=wrap_digitalresource_emit)
 
     args = parser.parse_args()
@@ -197,8 +197,8 @@ def wrap_digitalresource_emit(args, metadata={}):
             if check.get("result"):
                 print("[WARN] %s %s" % (current_name, check.get("msg", "")))
                 warnings_found = True
-    if warnings_found and not args.force:
-        print("[FAIL] Problems with your file were detected. If you don't care, run this command again with --force. I'll know it was you, though.")
+    if warnings_found and not args.i_have_bad_files:
+        print("[FAIL] Problems with your file were detected. If you don't care, run this command again with --i-have-bad-files. I'll know it was you, though.")
         sys.exit(3)
 
 #    metadata.extend(
