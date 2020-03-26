@@ -18,7 +18,7 @@ def cli():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-q", "--quiet", help="suppress the large welcoming ocarina", action="store_true")
-    parser.add_argument("-m", "--meta", action='append', nargs=3, metavar=('tag', 'key', 'value'))
+    parser.add_argument("-m", "--metadata", action='append', nargs=3, metavar=('tag', 'key', 'value'))
     subparsers = parser.add_subparsers(title="actions")
 
     biosample_parser = subparsers.add_parser("biosample", parents=[parser], add_help=False,
@@ -104,9 +104,16 @@ X8%%S:              .8 8S888    :8.88S@:
         print("Hello %s." % config["MAJORA_USER"])
 
     if hasattr(args, "func"):
-        args.func(args)
+        metadata = {}
+        if args.metadata:
+            for entry in args.metadata:
+                key, name, value = entry
+                if key not in metadata:
+                    metadata[key] = {}
+                metadata[key] = value
+        args.func(args, metadata)
 
-def wrap_single_biosample_emit(args):
+def wrap_single_biosample_emit(args, metadata={}):
     v_args = vars(args)
     del v_args["func"]
 
@@ -115,7 +122,7 @@ def wrap_single_biosample_emit(args):
     ]}
     util.emit(ENDPOINTS["api.artifact.biosample.add"], payload)
 
-def wrap_sequencing_emit(args):
+def wrap_sequencing_emit(args, metadata={}):
     v_args = vars(args)
     del v_args["func"]
 
@@ -127,7 +134,7 @@ def wrap_sequencing_emit(args):
     }
     util.emit(ENDPOINTS["api.process.sequencing.add"], payload)
 
-def wrap_library_emit(args):
+def wrap_library_emit(args, metadata={}):
     v_args = vars(args)
     del v_args["func"]
 
@@ -164,7 +171,7 @@ def wrap_library_emit(args):
     v_args["biosamples"] = submit_biosamples
     util.emit(ENDPOINTS["api.artifact.library.add"], v_args)
 
-def wrap_digitalresource_emit(args):
+def wrap_digitalresource_emit(args, metadata={}):
     v_args = vars(args)
 
     path = os.path.abspath(v_args["path"])
@@ -187,7 +194,7 @@ def wrap_digitalresource_emit(args):
         "current_name": os.path.basename(path),
         "current_hash": resource_hash,
         "current_size": resource_size,
-        "metadata": {}
+        "metadata": metadata
     }
     print(payload)
     #util.emit(ENDPOINTS["api.artifact.digitalresource.add"], payload)
