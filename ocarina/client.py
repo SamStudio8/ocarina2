@@ -18,9 +18,11 @@ def cli():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-q", "--quiet", help="suppress the large welcoming ocarina", action="store_true")
-    subparsers = parser.add_subparsers()
+    parser.add_argument("-m", "--meta", action='append', nargs=3, metavar=('tag', 'key', 'value'))
+    subparsers = parser.add_subparsers(title="actions")
 
-    biosample_parser = subparsers.add_parser("biosample", help="add a single biosample by providing fields via the CLI")
+    biosample_parser = subparsers.add_parser("biosample", parents=[parser], add_help=False,
+            help="add a single biosample by providing fields via the CLI")
     biosample_parser.add_argument("--adm1", required=True)
     biosample_parser.add_argument("--central-sample-id", "--coguk-sample-id", required=True)
     biosample_parser.add_argument("--collection-date", required=True)
@@ -40,7 +42,8 @@ def cli():
     biosample_parser.set_defaults(func=wrap_single_biosample_emit)
 
 
-    library_parser = subparsers.add_parser("library", help="add a sequencing library by providing fields via the CLI")
+    library_parser = subparsers.add_parser("library", parents=[parser], add_help=False,
+            help="add a sequencing library by providing fields via the CLI")
     lpg = library_parser.add_mutually_exclusive_group(required=True)
     lpg.add_argument("--biosamples", nargs='+')
     lpg.add_argument("--biosample", action='append', nargs=4,
@@ -58,7 +61,8 @@ def cli():
     library_parser.set_defaults(func=wrap_library_emit)
 
 
-    sequencing_parser = subparsers.add_parser("sequencing", help="add a single sequencing run by providing fields via the CLI")
+    sequencing_parser = subparsers.add_parser("sequencing", parents=[parser], add_help=False,
+            help="add a single sequencing run by providing fields via the CLI")
     sequencing_parser.add_argument("--library-name", required=True)
     sequencing_parser.add_argument("--sequencing-id", required=True)
     sequencing_parser.add_argument("--instrument-make", required=True)
@@ -68,6 +72,12 @@ def cli():
     sequencing_parser.add_argument("--start-time")
     sequencing_parser.add_argument("--end-time")
     sequencing_parser.set_defaults(func=wrap_sequencing_emit)
+
+
+    digitalresource_parser = subparsers.add_parser("file", parents=[parser], add_help=False,
+            help="register a local digital resource (file) over the Majora API")
+    digitalresource_parser.add_argument("--path", required=True)
+    digitalresource_parser.set_defaults(func=wrap_digitalresource_emit)
 
     args = parser.parse_args()
     if not args.quiet:
@@ -154,3 +164,30 @@ def wrap_library_emit(args):
     v_args["biosamples"] = submit_biosamples
     util.emit(ENDPOINTS["api.artifact.library.add"], v_args)
 
+def wrap_digitalresource_emit(args):
+    v_args = vars(args)
+
+    path = os.path.abspath(v_args["path"])
+    if not os.path.exists(path):
+        print("Path does not exist")
+        sys.exit(2)
+    if not os.path.isfile(path):
+        print("Path does not appear to be a file")
+        sys.exit(2)
+
+    resource_hash = util.hashfile(path, force_hash=True)
+    resource_size = os.path.getsize(path)
+    node_uuid = "..."
+    path = path
+    current_name = os.path.basename(path)
+
+    payload = {
+        "node_uuid": node_uuid,
+        "path": path,
+        "current_name": os.path.basename(path),
+        "current_hash": resource_hash,
+        "current_size": resource_size,
+        "metadata": {}
+    }
+    print(payload)
+    #util.emit(ENDPOINTS["api.artifact.digitalresource.add"], payload)
