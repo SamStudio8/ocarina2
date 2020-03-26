@@ -219,5 +219,4 @@ def wrap_digitalresource_emit(args, metadata={}):
         "resource_type": args.type,
         "metadata": metadata
     }
-    print(payload)
     util.emit(ENDPOINTS["api.artifact.file.add"], payload)

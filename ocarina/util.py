@@ -32,7 +32,14 @@ def emit(endpoint, payload):
             headers = {"Content-Type": "application/json", "charset": "UTF-8"},
             json = payload,
     )
-    print (r.json())
+
+    print("Request", "="*(80-len("Request ")))
+    payload["token"] = '*'*len(payload["token"])
+    print(json.dumps(payload, indent=4, sort_keys=True))
+
+    print("Response", "="*(80-len("Request ")))
+    print(json.dumps(r.json(), indent=4, sort_keys=True))
+
     return r.json()
 
 def hashfile(path, start_clock=None, halg=hashlib.md5, bs=65536, force_hash=False, partial_limit=10737418240, partial_sample=0.2):
