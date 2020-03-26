@@ -11,6 +11,7 @@ ENDPOINTS = {
         "api.artifact.biosample.add": "/api/v2/artifact/biosample/add/",
         "api.artifact.library.add": "/api/v2/artifact/library/add/",
         "api.process.sequencing.add": "/api/v2/process/sequencing/add/",
+        "api.artifact.file.add": "/api/v2/artifact/file/add/",
 }
 
 
@@ -77,6 +78,7 @@ def cli():
 
     digitalresource_parser = subparsers.add_parser("file", parents=[parser], add_help=False,
             help="register a local digital resource (file) over the Majora API")
+    digitalresource_parser.add_argument("--node", required=True)
     digitalresource_parser.add_argument("--path", required=True)
     digitalresource_parser.add_argument("--type", required=True) #TODO --reads | --consensus | --alignment?
     digitalresource_parser.add_argument("--i-have-bad-files", action="store_true")
@@ -206,8 +208,10 @@ def wrap_digitalresource_emit(args, metadata={}):
         sys.exit(3)
 
     payload = {
-        "node_uuid": node_uuid,
-        "current_path": path,
+        #"node_uuid": node_uuid,
+        "node_name": args.node,
+        "path": path,
+        "sep": os.path.sep,
         "current_fext": extension,
         "current_name": os.path.basename(path),
         "current_hash": resource_hash,
@@ -216,4 +220,4 @@ def wrap_digitalresource_emit(args, metadata={}):
         "metadata": metadata
     }
     print(payload)
-    #util.emit(ENDPOINTS["api.artifact.digitalresource.add"], payload)
+    util.emit(ENDPOINTS["api.artifact.file.add"], payload)
