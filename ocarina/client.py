@@ -78,6 +78,7 @@ def cli():
 
     digitalresource_parser = subparsers.add_parser("file", parents=[parser], add_help=False,
             help="register a local digital resource (file) over the Majora API")
+    digitalresource_parser.add_argument("--bridge-artifact", "--biosample", required=False)
     digitalresource_parser.add_argument("--source-artifact", "--source-file", required=False)
     digitalresource_parser.add_argument("--source-group", required=False)
     digitalresource_parser.add_argument("--node", required=True)
@@ -223,5 +224,6 @@ def wrap_digitalresource_emit(args, metadata={}):
 
         "source_group": args.source_group,
         "source_artifact": args.source_artifact,
+        "bridge_artifact": args.bridge_artifact,
     }
     util.emit(ENDPOINTS["api.artifact.file.add"], payload)
