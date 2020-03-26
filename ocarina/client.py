@@ -54,6 +54,7 @@ def cli():
     library_parser.add_argument("--library-seq-protocol", required=True)
     library_parser.add_argument("--library-layout-insert-length")
     library_parser.add_argument("--library-layout-read-length")
+    library_parser.add_argument("--force-biosamples", action="store_true")
     library_parser.set_defaults(func=wrap_library_emit)
 
 
