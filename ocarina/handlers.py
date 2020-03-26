@@ -3,8 +3,9 @@ import os
 import sys
 
 class FiletypeHandler(object):
-    def __init__(self, path):
+    def __init__(self, name, path):
         self.path = path
+        self.name = name
         self.metadata = {}
 
     def check_integrity(self):
@@ -12,6 +13,12 @@ class FiletypeHandler(object):
 
     def make_metadata(self):
         return {}
+
+    def get_metadata(self):
+        self.make_metadata()
+        return {
+            self.name: self.metadata,
+        }
 
 
 class BamFileHandler(FiletypeHandler):
@@ -48,7 +55,7 @@ class BamFileHandler(FiletypeHandler):
         metadata = {}
         if self.alignments > -1:
             metadata["n_alignments"] = self.alignments
-        return metadata
+        self.metadata = metadata
 
 
 class FastaFileHandler(FiletypeHandler):
@@ -57,6 +64,7 @@ class FastaFileHandler(FiletypeHandler):
         from .handler_utils import readfq
 
         self.seqs = 0
+        self.bases = 0
         self.size = os.path.getsize(self.path)
         self.has_headspace = False
         self.has_noncharseq = False
@@ -67,6 +75,7 @@ class FastaFileHandler(FiletypeHandler):
                 self.has_headspace = True
 
             self.seqs += 1
+            self.bases += len(seq)
 
             # too slow for real uses but will work in viral consortium stuff for now
             if 'X' in seq or '-' in seq or ' ' in seq:
@@ -83,4 +92,8 @@ class FastaFileHandler(FiletypeHandler):
         metadata = {}
         if self.seqs > -1:
             metadata["n_sequences"] = self.seqs
-        return metadata
+        if self.bases > -1:
+            metadata["n_bases"] = self.bases
+        if self.bases > 0 and self.seqs > 0:
+            metadata["avg_bases"] = self.bases / self.seqs
+        self.metadata = metadata

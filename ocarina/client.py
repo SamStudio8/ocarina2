@@ -197,11 +197,11 @@ def wrap_digitalresource_emit(args, metadata={}):
             if check.get("result"):
                 print("[WARN] %s %s" % (current_name, check.get("msg", "")))
                 warnings_found = True
+        metadata.update(song.get_metadata())
     if warnings_found and not args.i_have_bad_files:
         print("[FAIL] Problems with your file were detected. If you don't care, run this command again with --i-have-bad-files. I'll know it was you, though.")
         sys.exit(3)
 
-#    metadata.extend(
     payload = {
         "node_uuid": node_uuid,
         "path": path,

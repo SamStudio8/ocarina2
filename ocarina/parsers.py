@@ -10,6 +10,6 @@ def get_parser_for_type(path):
     for handler in filetype_handlers:
         for extension in filetype_handlers[handler][0]:
             if target.endswith(extension):
-                return filetype_handlers[handler][1](path)
+                return filetype_handlers[handler][1](handler, path)
     return None
 
