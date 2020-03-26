@@ -1,7 +1,7 @@
 from . import handlers
 
 filetype_handlers = {
-    "fasta":    ( ["fa", "fas", "fasta", "fa.gz"], handlers.FastaFileHandler ),
+    "fasta":    ( ["fa", "fas", "fasta" ], handlers.FastaFileHandler ),
     "bam":      ( ["bam"], handlers.BamFileHandler ),
 }
 
@@ -10,6 +10,6 @@ def get_parser_for_type(path):
     for handler in filetype_handlers:
         for extension in filetype_handlers[handler][0]:
             if target.endswith(extension):
-                return filetype_handlers[handler][1](handler, path)
+                return filetype_handlers[handler][1](handler, path, extension)
     return None
 

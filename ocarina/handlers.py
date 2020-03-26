@@ -3,9 +3,10 @@ import os
 import sys
 
 class FiletypeHandler(object):
-    def __init__(self, name, path):
+    def __init__(self, name, path, extension):
         self.path = path
         self.name = name
+        self.extension = extension
         self.metadata = {}
 
     def check_integrity(self):
