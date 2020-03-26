@@ -3,6 +3,7 @@ import sys
 
 import json
 from . import util
+from . import parsers
 
 import argparse
 
@@ -188,6 +189,13 @@ def wrap_digitalresource_emit(args, metadata={}):
     path = path
     current_name = os.path.basename(path)
 
+    song = parsers.get_parser_for_type(path)
+    if song:
+        for check_name, check  in song.check_integrity().items():
+            if check.get("result"):
+                print("[WARN] %s %s" % (current_name, check.get("msg", "")))
+
+#    metadata.extend(
     payload = {
         "node_uuid": node_uuid,
         "path": path,
