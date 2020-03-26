@@ -78,6 +78,7 @@ def cli():
     digitalresource_parser = subparsers.add_parser("file", parents=[parser], add_help=False,
             help="register a local digital resource (file) over the Majora API")
     digitalresource_parser.add_argument("--path", required=True)
+    digitalresource_parser.add_argument("--type", required=True)
     digitalresource_parser.add_argument("--i-have-bad-files", action="store_true")
     digitalresource_parser.set_defaults(func=wrap_digitalresource_emit)
 
@@ -206,11 +207,12 @@ def wrap_digitalresource_emit(args, metadata={}):
 
     payload = {
         "node_uuid": node_uuid,
-        "path": path,
-        "current_ext": extension,
+        "current_path": path,
+        "current_fext": extension,
         "current_name": os.path.basename(path),
         "current_hash": resource_hash,
         "current_size": resource_size,
+        "resource_type": args.type,
         "metadata": metadata
     }
     print(payload)
