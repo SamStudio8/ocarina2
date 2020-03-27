@@ -85,11 +85,14 @@ def cli():
     digitalresource_parser.add_argument("--bridge-artifact", "--biosample", required=False)
     digitalresource_parser.add_argument("--source-artifact", "--source-file", required=False)
     digitalresource_parser.add_argument("--source-group", required=False)
-    digitalresource_parser.add_argument("--node", required=True)
+    digitalresource_parser.add_argument("--node", required=False)
     digitalresource_parser.add_argument("--path", required=True)
     digitalresource_parser.add_argument("--type", required=True) #TODO --reads | --consensus | --alignment?
     digitalresource_parser.add_argument("--i-have-bad-files", action="store_true")
+    digitalresource_parser.add_argument("--full-path", action="store_true")
+    digitalresource_parser.add_argument("--no-user", action="store_true")
     digitalresource_parser.set_defaults(func=wrap_digitalresource_emit)
+
 
     args = parser.parse_args()
     if not args.quiet:
@@ -196,7 +199,7 @@ def wrap_digitalresource_emit(args, metadata={}):
 
     resource_hash = util.hashfile(path, force_hash=True)
     resource_size = os.path.getsize(path)
-    node_uuid = "..."
+    #node_uuid = "..."
     path = path
     current_name = os.path.basename(path)
     extension = current_name.split('.')[-1]
@@ -213,6 +216,16 @@ def wrap_digitalresource_emit(args, metadata={}):
     if warnings_found and not args.i_have_bad_files:
         print("[FAIL] Problems with your file were detected. If you don't care, run this command again with --i-have-bad-files. I'll know it was you, though.")
         sys.exit(3)
+
+    path = path.split(os.path.sep)
+    if not args.full_path:
+        # Send a single directory and filename
+        path = path[-2:]
+        if not args.no_user:
+            config = util.get_config()
+            path = [config["MAJORA_USER"]] + path
+        path = ['null'] + path # dont ask
+    path = os.path.sep.join(path)
 
     payload = {
         #"node_uuid": node_uuid,
