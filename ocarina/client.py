@@ -66,7 +66,11 @@ def cli():
     sequencing_parser = subparsers.add_parser("sequencing", parents=[parser], add_help=False,
             help="add a single sequencing run by providing fields via the CLI")
     sequencing_parser.add_argument("--library-name", required=True)
-    sequencing_parser.add_argument("--sequencing-id", required=True)
+
+    spg = sequencing_parser.add_mutually_exclusive_group(required=True)
+    spg.add_argument("--sequencing-id") #TODO allow for both?
+    spg.add_argument("--run-name")
+
     sequencing_parser.add_argument("--instrument-make", required=True)
     sequencing_parser.add_argument("--instrument-model", required=True)
     sequencing_parser.add_argument("--flowcell-type")
