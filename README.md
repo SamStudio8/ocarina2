@@ -22,3 +22,46 @@ X8%%S:              .8 8S888    :8.88S@:
 
 # ocarina
 Ocarina is a simple Python requests program for shouting at the [Majora](https://github.com/SamStudio8/majora) API.
+
+## Basic examples
+
+### Add a biosample
+
+```
+ocarina biosample --adm1 UK-WLS \
+                  --central-sample-id "HOOT-OCARINA-012" \
+                  --collection-date "2020-03-25" \
+                  --source-age 29 \
+                  --source-sex M
+```
+
+### Pool biosamples into a library
+
+```
+ocarina library --library-name "BIRM-20200326-1844" \
+                --library-seq-kit "LSK109" \
+                --library-seq-protocol "LIGATION" \
+                --library-layout-config "SINGLE" \
+                --biosample HOOT-OCARINA-101 VIRAL_RNA PCR AMPLICON \
+                --biosample HOOT-OCARINA-102 GENOMIC PCR AMPLICON
+```
+
+Or use a shortcut if all biosamples have the same library properties
+
+```
+ocarina library --library-name "BIRM-20200326-1844" \
+                --library-seq-kit "LSK109" \
+                --library-seq-protocol "LIGATION" \
+                --library-layout-config "SINGLE" \
+                --biosamples HOOT-OCARINA-101 HOOT-OCARINA-102 \
+                --apply-all-library VIRAL_RNA PCR AMPLICON
+```
+
+### Add a sequencing run for a library
+
+```
+ocarina sequencing --library-name BIRM-20200326-1844 \
+                   --sequencing-id "00000101-3fcb-421e-85e0-db5d48de28af" \
+                   --instrument-make "OXFORD_NANOPORE" \
+                   --instrument-model "GridION"
+```
