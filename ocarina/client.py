@@ -12,6 +12,7 @@ ENDPOINTS = {
         "api.artifact.library.add": "/api/v2/artifact/library/add/",
         "api.process.sequencing.add": "/api/v2/process/sequencing/add/",
         "api.artifact.file.add": "/api/v2/artifact/file/add/",
+        "api.meta.tag.add": "/api/v2/meta/tag/add/",
 }
 
 
@@ -93,6 +94,17 @@ def cli():
     digitalresource_parser.add_argument("--no-user", action="store_true")
     digitalresource_parser.set_defaults(func=wrap_digitalresource_emit)
 
+
+    #pipeline_parser = subparsers.add_parser("pipe", parents=[parser], add_help=False,
+    #        help="Register a pipeline over the Majora API"))
+
+    tag_parser = subparsers.add_parser("tag", parents=[parser], add_help=False,
+            help="Tag an artifact or process with some metadata")
+    tpg = tag_parser.add_mutually_exclusive_group(required=True)
+    tpg.add_argument("--artifact")
+    tpg.add_argument("--group")
+    tpg.add_argument("--process")
+    tag_parser.set_defaults(func=wrap_tag_emit)
 
     args = parser.parse_args()
     if not args.quiet:
@@ -244,3 +256,10 @@ def wrap_digitalresource_emit(args, metadata={}):
         "bridge_artifact": args.bridge_artifact,
     }
     util.emit(ENDPOINTS["api.artifact.file.add"], payload)
+
+def wrap_tag_emit(args, metadata={}):
+    v_args = vars(args)
+    del v_args["func"]
+
+    v_args["metadata"] = metadata
+    util.emit(ENDPOINTS["api.meta.tag.add"], v_args)
