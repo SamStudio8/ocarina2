@@ -13,6 +13,8 @@ ENDPOINTS = {
         "api.process.sequencing.add": "/api/v2/process/sequencing/add/",
         "api.artifact.file.add": "/api/v2/artifact/file/add/",
         "api.meta.tag.add": "/api/v2/meta/tag/add/",
+
+        "api.artifact.biosample.get": "/api/v2/artifact/biosample/get/",
 }
 
 
@@ -114,6 +116,14 @@ def cli():
     tpg.add_argument("--process")
     tag_parser.set_defaults(func=wrap_tag_emit)
 
+
+    get_parser = action_parser.add_parser("get")
+    get_subparsers = get_parser.add_subparsers(title="actions")
+    get_biosample_parser = get_subparsers.add_parser("biosample", parents=[get_parser], add_help=False,
+            help="fetch a biosample")
+    get_biosample_parser.add_argument("--central-sample-id", "--coguk-sample-id", required=True)
+    get_biosample_parser.set_defaults(func=wrap_get_biosample)
+
     args = parser.parse_args()
     if not args.quiet:
         print('''
@@ -140,7 +150,7 @@ X8%%S:              .8 8S888    :8.88S@:
 
     if hasattr(args, "func"):
         metadata = {}
-        if args.metadata:
+        if hasattr(args, "metadata") and args.metadata:
             for entry in args.metadata:
                 key, name, value = entry
                 if key not in metadata:
@@ -157,6 +167,11 @@ def wrap_single_biosample_emit(args, metadata={}):
         v_args,
     ]}
     util.emit(ENDPOINTS["api.artifact.biosample.add"], payload)
+
+def wrap_get_biosample(args, metadata={}):
+    v_args = vars(args)
+    del v_args["func"]
+    util.emit(ENDPOINTS["api.artifact.biosample.get"], v_args)
 
 def wrap_sequencing_emit(args, metadata={}):
     v_args = vars(args)
