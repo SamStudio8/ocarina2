@@ -45,6 +45,7 @@ def cli():
     biosample_parser.add_argument("--secondary-accession", "--gisaid-accession")
     biosample_parser.add_argument("--secondary-identifier", "--gisaid-identifier")
     biosample_parser.add_argument("--adm2")
+    biosample_parser.add_argument("--adm2-private")
     biosample_parser.add_argument("--biosample-source-id")
     biosample_parser.add_argument("--collecting-org")
     biosample_parser.add_argument("--root-sample-id")
