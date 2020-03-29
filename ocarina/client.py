@@ -28,7 +28,11 @@ def cli():
             help="add a single biosample by providing fields via the CLI")
     biosample_parser.add_argument("--adm1", required=True)
     biosample_parser.add_argument("--central-sample-id", "--coguk-sample-id", required=True)
-    biosample_parser.add_argument("--collection-date", required=True)
+
+    bsp_date = biosample_parser.add_mutually_exclusive_group(required=True)
+    bsp_date.add_argument("--collection-date")
+    bsp_date.add_argument("--received-date")
+
     biosample_parser.add_argument("--source-age", required=True)
     biosample_parser.add_argument("--source-sex", required=True)
     biosample_parser.add_argument("--override-heron", action="store_true")
