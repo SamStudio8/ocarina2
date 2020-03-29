@@ -21,10 +21,14 @@ def cli():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-q", "--quiet", help="suppress the large welcoming ocarina", action="store_true")
-    parser.add_argument("-m", "--metadata", action='append', nargs=3, metavar=('tag', 'key', 'value'))
-    subparsers = parser.add_subparsers(title="actions")
 
-    biosample_parser = subparsers.add_parser("biosample", parents=[parser], add_help=False,
+    action_parser = parser.add_subparsers()
+    put_parser = action_parser.add_parser("put")
+    put_parser.add_argument("-m", "--metadata", action='append', nargs=3, metavar=('tag', 'key', 'value'))
+
+    subparsers = put_parser.add_subparsers(title="actions")
+
+    biosample_parser = subparsers.add_parser("biosample", parents=[put_parser], add_help=False,
             help="add a single biosample by providing fields via the CLI")
     biosample_parser.add_argument("--adm1", required=True)
     biosample_parser.add_argument("--central-sample-id", "--coguk-sample-id", required=True)
@@ -49,7 +53,7 @@ def cli():
     biosample_parser.set_defaults(func=wrap_single_biosample_emit)
 
 
-    library_parser = subparsers.add_parser("library", parents=[parser], add_help=False,
+    library_parser = subparsers.add_parser("library", parents=[put_parser], add_help=False,
             help="add a sequencing library by providing fields via the CLI")
     lpg = library_parser.add_mutually_exclusive_group(required=True)
     lpg.add_argument("--biosamples", nargs='+')
@@ -68,7 +72,7 @@ def cli():
     library_parser.set_defaults(func=wrap_library_emit)
 
 
-    sequencing_parser = subparsers.add_parser("sequencing", parents=[parser], add_help=False,
+    sequencing_parser = subparsers.add_parser("sequencing", parents=[put_parser], add_help=False,
             help="add a single sequencing run by providing fields via the CLI")
     sequencing_parser.add_argument("--library-name", required=True)
 
@@ -85,7 +89,7 @@ def cli():
     sequencing_parser.set_defaults(func=wrap_sequencing_emit)
 
 
-    digitalresource_parser = subparsers.add_parser("file", parents=[parser], add_help=False,
+    digitalresource_parser = subparsers.add_parser("file", parents=[put_parser], add_help=False,
             help="register a local digital resource (file) over the Majora API")
     digitalresource_parser.add_argument("--bridge-artifact", "--biosample", required=False)
     digitalresource_parser.add_argument("--source-artifact", "--source-file", required=False)
@@ -102,7 +106,7 @@ def cli():
     #pipeline_parser = subparsers.add_parser("pipe", parents=[parser], add_help=False,
     #        help="Register a pipeline over the Majora API"))
 
-    tag_parser = subparsers.add_parser("tag", parents=[parser], add_help=False,
+    tag_parser = subparsers.add_parser("tag", parents=[put_parser], add_help=False,
             help="Tag an artifact or process with some metadata")
     tpg = tag_parser.add_mutually_exclusive_group(required=True)
     tpg.add_argument("--artifact")
