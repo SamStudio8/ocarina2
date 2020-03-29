@@ -148,6 +148,7 @@ def wrap_single_biosample_emit(args, metadata={}):
     v_args = vars(args)
     del v_args["func"]
 
+    v_args["metadata"] = metadata
     payload = {"biosamples": [
         v_args,
     ]}
