@@ -28,7 +28,7 @@ Ocarina is a simple Python requests program for shouting at the [Majora](https:/
 ### Add a biosample
 
 ```
-ocarina biosample --adm1 UK-WLS \
+ocarina put biosample --adm1 UK-WLS \
                   --central-sample-id "HOOT-OCARINA-012" \
                   --collection-date "2020-03-25" \
                   --source-age 29 \
@@ -38,7 +38,7 @@ ocarina biosample --adm1 UK-WLS \
 ### Pool biosamples into a library
 
 ```
-ocarina library --library-name "BIRM-20200326-1844" \
+ocarina put library --library-name "BIRM-20200326-1844" \
                 --library-seq-kit "LSK109" \
                 --library-seq-protocol "LIGATION" \
                 --library-layout-config "SINGLE" \
@@ -49,7 +49,7 @@ ocarina library --library-name "BIRM-20200326-1844" \
 Or use a shortcut if all biosamples have the same library properties
 
 ```
-ocarina library --library-name "BIRM-20200326-1844" \
+ocarina put library --library-name "BIRM-20200326-1844" \
                 --library-seq-kit "LSK109" \
                 --library-seq-protocol "LIGATION" \
                 --library-layout-config "SINGLE" \
@@ -60,7 +60,7 @@ ocarina library --library-name "BIRM-20200326-1844" \
 ### Add a sequencing run for a library
 
 ```
-ocarina sequencing --library-name BIRM-20200326-1844 \
+ocarina put sequencing --library-name BIRM-20200326-1844 \
                    --sequencing-id "00000101-3fcb-421e-85e0-db5d48de28af" \
                    --instrument-make "OXFORD_NANOPORE" \
                    --instrument-model "GridION"
