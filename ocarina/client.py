@@ -78,6 +78,7 @@ def cli():
     sequencing_parser = subparsers.add_parser("sequencing", parents=[put_parser], add_help=False,
             help="add a single sequencing run by providing fields via the CLI")
     sequencing_parser.add_argument("--library-name", required=True)
+    sequencing_parser.add_argument("--run-group", required=True)
 
     spg = sequencing_parser.add_mutually_exclusive_group(required=True)
     spg.add_argument("--sequencing-id") #TODO allow for both?
@@ -181,6 +182,7 @@ def wrap_sequencing_emit(args, metadata={}):
     payload = {
         "metadata": metadata,
         "library_name": v_args["library_name"],
+        "run_group": v_args["run_group"],
         "runs": [
             v_args,
         ]
