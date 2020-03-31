@@ -41,7 +41,6 @@ def cli():
 
     biosample_parser.add_argument("--source-age", required=True)
     biosample_parser.add_argument("--source-sex", required=True)
-    biosample_parser.add_argument("--override-heron", action="store_true")
     biosample_parser.add_argument("--secondary-accession", "--gisaid-accession")
     biosample_parser.add_argument("--secondary-identifier", "--gisaid-identifier")
     biosample_parser.add_argument("--adm2")
