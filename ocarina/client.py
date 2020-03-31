@@ -78,7 +78,7 @@ def cli():
     sequencing_parser = subparsers.add_parser("sequencing", parents=[put_parser], add_help=False,
             help="add a single sequencing run by providing fields via the CLI")
     sequencing_parser.add_argument("--library-name", required=True)
-    sequencing_parser.add_argument("--run-group", required=True)
+    sequencing_parser.add_argument("--run-group", required=False)
 
     spg = sequencing_parser.add_mutually_exclusive_group(required=True)
     spg.add_argument("--sequencing-id") #TODO allow for both?
