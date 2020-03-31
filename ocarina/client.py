@@ -179,6 +179,7 @@ def wrap_sequencing_emit(args, metadata={}):
     del v_args["func"]
 
     payload = {
+        "metadata": metadata,
         "library_name": v_args["library_name"],
         "runs": [
             v_args,
@@ -189,9 +190,6 @@ def wrap_sequencing_emit(args, metadata={}):
 def wrap_library_emit(args, metadata={}):
     v_args = vars(args)
     del v_args["func"]
-
-    print(args)
-    print(v_args)
 
     if args.biosample:
         submit_biosamples = []
@@ -220,6 +218,7 @@ def wrap_library_emit(args, metadata={}):
         del v_args["apply_all_library"]
         del v_args["biosamples"]
 
+    v_args["metadata"] = metadata
     v_args["biosamples"] = submit_biosamples
     util.emit(ENDPOINTS["api.artifact.library.add"], v_args)
 
