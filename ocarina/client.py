@@ -95,8 +95,10 @@ def cli():
     digitalresource_parser = subparsers.add_parser("file", parents=[put_parser], add_help=False,
             help="register a local digital resource (file) over the Majora API")
     digitalresource_parser.add_argument("--bridge-artifact", "--biosample", required=False)
-    digitalresource_parser.add_argument("--source-artifact", "--source-file", required=False)
-    digitalresource_parser.add_argument("--source-group", required=False)
+    digitalresource_parser.add_argument("--source-artifact", "--source-file", required=False, nargs='+')
+    digitalresource_parser.add_argument("--source-group", required=False, nargs='+')
+    digitalresource_parser.add_argument("--pipeline", required=True, nargs=4,
+            metavar=["pipe_id", "pipe_category", "pipe_name", "pipe_version"])
     digitalresource_parser.add_argument("--node", required=False)
     digitalresource_parser.add_argument("--path", required=True)
     digitalresource_parser.add_argument("--type", required=True) #TODO --reads | --consensus | --alignment?
@@ -275,6 +277,11 @@ def wrap_digitalresource_emit(args, metadata={}):
         "current_size": resource_size,
         "resource_type": args.type,
         "metadata": metadata,
+
+        "pipe_id": args.pipeline[0],
+        "pipe_kind": args.pipeline[1],
+        "pipe_name": args.pipeline[2],
+        "pipe_version": args.pipeline[3],
 
         "source_group": args.source_group,
         "source_artifact": args.source_artifact,
