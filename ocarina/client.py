@@ -41,8 +41,8 @@ def cli():
     bsp_date.add_argument("--collection-date")
     bsp_date.add_argument("--received-date")
 
-    biosample_parser.add_argument("--source-age", required=True)
-    biosample_parser.add_argument("--source-sex", required=True)
+    biosample_parser.add_argument("--source-age")
+    biosample_parser.add_argument("--source-sex")
     biosample_parser.add_argument("--secondary-accession", "--gisaid-accession")
     biosample_parser.add_argument("--secondary-identifier", "--gisaid-identifier")
     biosample_parser.add_argument("--adm2")
