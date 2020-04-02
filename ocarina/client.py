@@ -28,6 +28,7 @@ def cli():
     action_parser = parser.add_subparsers()
     put_parser = action_parser.add_parser("put")
     put_parser.add_argument("-m", "--metadata", action='append', nargs=3, metavar=('tag', 'key', 'value'))
+    put_parser.add_argument("--sudo-as", required=False)
 
     subparsers = put_parser.add_subparsers(title="actions")
 
@@ -177,16 +178,16 @@ def wrap_single_biosample_emit(args, metadata={}):
     payload = {"biosamples": [
         v_args,
     ]}
-    util.emit(ENDPOINTS["api.artifact.biosample.add"], payload, quiet=args.quiet)
+    util.emit(ENDPOINTS["api.artifact.biosample.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
 
 def wrap_get_biosample(args, metadata={}):
     v_args = vars(args)
     del v_args["func"]
-    util.emit(ENDPOINTS["api.artifact.biosample.get"], v_args, quiet=args.quiet)
+    util.emit(ENDPOINTS["api.artifact.biosample.get"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
 def wrap_get_sequencing(args, metadata={}):
     v_args = vars(args)
     del v_args["func"]
-    j = util.emit(ENDPOINTS["api.process.sequencing.get"], v_args, quiet=args.quiet)
+    j = util.emit(ENDPOINTS["api.process.sequencing.get"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
 
     if v_args["tsv"]:
         i = 0
@@ -267,7 +268,7 @@ def wrap_sequencing_emit(args, metadata={}):
             v_args,
         ]
     }
-    util.emit(ENDPOINTS["api.process.sequencing.add"], payload, quiet=args.quiet)
+    util.emit(ENDPOINTS["api.process.sequencing.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
 
 def wrap_library_emit(args, metadata={}):
     v_args = vars(args)
@@ -302,7 +303,7 @@ def wrap_library_emit(args, metadata={}):
 
     v_args["metadata"] = metadata
     v_args["biosamples"] = submit_biosamples
-    util.emit(ENDPOINTS["api.artifact.library.add"], v_args, quiet=args.quiet)
+    util.emit(ENDPOINTS["api.artifact.library.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
 
 def wrap_digitalresource_emit(args, metadata={}):
     v_args = vars(args)
@@ -366,11 +367,11 @@ def wrap_digitalresource_emit(args, metadata={}):
         "source_artifact": args.source_artifact,
         "bridge_artifact": args.bridge_artifact,
     }
-    util.emit(ENDPOINTS["api.artifact.file.add"], payload, quiet=args.quiet)
+    util.emit(ENDPOINTS["api.artifact.file.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
 
 def wrap_tag_emit(args, metadata={}):
     v_args = vars(args)
     del v_args["func"]
 
     v_args["metadata"] = metadata
-    util.emit(ENDPOINTS["api.meta.tag.add"], v_args, quiet=args.quiet)
+    util.emit(ENDPOINTS["api.meta.tag.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)

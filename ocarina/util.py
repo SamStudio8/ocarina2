@@ -21,12 +21,15 @@ def get_config():
         sys.stderr.write('''echo '{"MAJORA_DOMAIN": "https:\\...\", "MAJORA_USER": "", "MAJORA_TOKEN": ""}' > ~/.ocarina''')
         sys.exit(1)
 
-def emit(endpoint, payload, quiet=False):
+def emit(endpoint, payload, quiet=False, sudo_as=None):
     config = get_config()
     payload["username"] = config["MAJORA_USER"]
     payload["token"] = config["MAJORA_TOKEN"]
     payload["client_name"] = "ocarina"
     payload["client_version"] = version.__version__
+
+    if sudo_as:
+        payload["sudo_as"] = sudo_as
 
     r = requests.post(config["MAJORA_DOMAIN"] + endpoint + '/',
             headers = {"Content-Type": "application/json", "charset": "UTF-8"},
