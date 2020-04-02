@@ -181,11 +181,11 @@ def wrap_single_biosample_emit(args, config, metadata={}):
     ]}
     util.emit(config, ENDPOINTS["api.artifact.biosample.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
 
-def wrap_get_biosample(args, metadata={}):
+def wrap_get_biosample(args, config, metadata={}):
     v_args = vars(args)
     del v_args["func"]
     util.emit(config, ENDPOINTS["api.artifact.biosample.get"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
-def wrap_get_sequencing(args, metadata={}):
+def wrap_get_sequencing(args, config, metadata={}):
     v_args = vars(args)
     del v_args["func"]
     j = util.emit(config, ENDPOINTS["api.process.sequencing.get"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
