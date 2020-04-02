@@ -107,6 +107,7 @@ def cli():
     digitalresource_parser.add_argument("--i-have-bad-files", action="store_true")
     digitalresource_parser.add_argument("--full-path", action="store_true")
     digitalresource_parser.add_argument("--no-user", action="store_true")
+    digitalresource_parser.add_argument("--artifact-uuid")
     digitalresource_parser.set_defaults(func=wrap_digitalresource_emit)
 
 
@@ -366,6 +367,7 @@ def wrap_digitalresource_emit(args, config, metadata={}):
         "source_group": args.source_group,
         "source_artifact": args.source_artifact,
         "bridge_artifact": args.bridge_artifact,
+        "artifact_uuid": args.artifact_uuid,
     }
     util.emit(config, ENDPOINTS["api.artifact.file.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
 
