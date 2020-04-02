@@ -203,7 +203,10 @@ def wrap_get_sequencing(args, metadata={}):
                                 flat_meta["meta.%s.%s" % (tag, name)] = l["metadata"][tag][name]
                                 all_possible_meta_keys.add("meta.%s.%s" % (tag, name))
                         l.update(flat_meta)
+                    try:
                         del l["metadata"]
+                    except:
+                        pass
 
             for run in j["get"]:
                 row_master = j["get"][run]
@@ -220,11 +223,18 @@ def wrap_get_sequencing(args, metadata={}):
                             lib_master[mk] = None
 
                     for b in biosamples:
+                        if not b.get("adm0"):
+                            sys.stderr.write("Skipping row: %s.%s.%s as it does not have a complete set of headers...\n" % (run, l["library_name"], b["central_sample_id"]))
+                            continue
                         try:
                             b["biosample_source_id"] = b["biosample_sources"][0]["biosample_source_id"]
                         except:
                             b["biosample_source_id"] = None
-                        del b["biosample_sources"]
+
+                        try:
+                            del b["biosample_sources"]
+                        except:
+                            pass
 
                         row = {}
                         row.update(row_master)
@@ -236,9 +246,13 @@ def wrap_get_sequencing(args, metadata={}):
                             fields.append(str(row[f]))
 
                         if i == 0:
-                            header = "\t".join(sorted(row))
-                            print(header)
-                        print("\t".join(fields))
+                            header = sorted(row)
+                            print("\t".join(header))
+                        if len(fields) != len(header):
+                            sys.stderr.write("Skipping row: %s.%s.%s as it does not have a complete set of headers...\n" % (run, l["library_name"], b["central_sample_id"]))
+                        else:
+                            print("\t".join(fields))
+
                         i += 1
 
 def wrap_sequencing_emit(args, metadata={}):
