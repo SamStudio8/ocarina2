@@ -33,12 +33,12 @@ def emit(endpoint, payload):
             json = payload,
     )
 
-    print("Request", "="*(80-len("Request ")))
+    sys.stderr.write("Request" + "="*(80-len("Request ")) + '\n')
     payload["token"] = '*'*len(payload["token"])
-    print(json.dumps(payload, indent=4, sort_keys=True))
+    sys.stderr.write(json.dumps(payload, indent=4, sort_keys=True))
 
-    print("Response", "="*(80-len("Request ")))
-    print(json.dumps(r.json(), indent=4, sort_keys=True))
+    sys.stderr.write("Response" + "="*(80-len("Request ")) + '\n')
+    sys.stderr.write(json.dumps(r.json(), indent=4, sort_keys=True))
 
     return r.json()
 

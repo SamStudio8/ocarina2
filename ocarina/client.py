@@ -131,12 +131,13 @@ def cli():
 
     get_sequencing_parser = get_subparsers.add_parser("sequencing", parents=[get_parser], add_help=False,
             help="fetch a sequencing run")
-    get_sequencing_parser.add_argument("--run-name", required=True)
+    get_sequencing_parser.add_argument("--run-name", required=True, nargs='+')
+    get_sequencing_parser.add_argument("--tsv", action="store_true")
     get_sequencing_parser.set_defaults(func=wrap_get_sequencing)
 
     args = parser.parse_args()
     if not args.quiet:
-        print('''
+        sys.stderr.write('''
                                  .@ 888S
                             ;@S8888:8%tX
  :XS.                 .;8: @8t88888t8888
@@ -156,7 +157,7 @@ X8%%S:              .8 8S888    :8.88S@:
  ::8St   88;   88S8;
    ;t 8X.8;%8 8%
 ''')
-        print("Hello %s." % config["MAJORA_USER"])
+        sys.stderr.write("Hello %s.\n" % config["MAJORA_USER"])
 
     if hasattr(args, "func"):
         metadata = {}
@@ -185,7 +186,60 @@ def wrap_get_biosample(args, metadata={}):
 def wrap_get_sequencing(args, metadata={}):
     v_args = vars(args)
     del v_args["func"]
-    util.emit(ENDPOINTS["api.process.sequencing.get"], v_args)
+    j = util.emit(ENDPOINTS["api.process.sequencing.get"], v_args)
+
+    if v_args["tsv"]:
+        i = 0
+        header = None
+
+        if len(j["get"]) >= 1:
+            all_possible_meta_keys = set([])
+            for run in j["get"]:
+                for l in j["get"][run]["libraries"]:
+                    if l["metadata"]:
+                        flat_meta = {}
+                        for tag in l["metadata"]:
+                            for name in l["metadata"][tag]:
+                                flat_meta["meta.%s.%s" % (tag, name)] = l["metadata"][tag][name]
+                                all_possible_meta_keys.add("meta.%s.%s" % (tag, name))
+                        l.update(flat_meta)
+                        del l["metadata"]
+
+            for run in j["get"]:
+                row_master = j["get"][run]
+                libraries = row_master.get("libraries")
+                del row_master["libraries"]
+
+                for l in libraries:
+                    lib_master = l
+                    biosamples = lib_master["biosamples"]
+                    del lib_master["biosamples"]
+
+                    for mk in all_possible_meta_keys:
+                        if mk not in lib_master:
+                            lib_master[mk] = None
+
+                    for b in biosamples:
+                        try:
+                            b["biosample_source_id"] = b["biosample_sources"][0]["biosample_source_id"]
+                        except:
+                            b["biosample_source_id"] = None
+                        del b["biosample_sources"]
+
+                        row = {}
+                        row.update(row_master)
+                        row.update(lib_master)
+                        row.update(b)
+
+                        fields = []
+                        for f in sorted(row):
+                            fields.append(str(row[f]))
+
+                        if i == 0:
+                            header = "\t".join(sorted(row))
+                            print(header)
+                        print("\t".join(fields))
+                        i += 1
 
 def wrap_sequencing_emit(args, metadata={}):
     v_args = vars(args)
