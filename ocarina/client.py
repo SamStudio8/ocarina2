@@ -177,16 +177,16 @@ def wrap_single_biosample_emit(args, metadata={}):
     payload = {"biosamples": [
         v_args,
     ]}
-    util.emit(ENDPOINTS["api.artifact.biosample.add"], payload)
+    util.emit(ENDPOINTS["api.artifact.biosample.add"], payload, quiet=args.quiet)
 
 def wrap_get_biosample(args, metadata={}):
     v_args = vars(args)
     del v_args["func"]
-    util.emit(ENDPOINTS["api.artifact.biosample.get"], v_args)
+    util.emit(ENDPOINTS["api.artifact.biosample.get"], v_args, quiet=args.quiet)
 def wrap_get_sequencing(args, metadata={}):
     v_args = vars(args)
     del v_args["func"]
-    j = util.emit(ENDPOINTS["api.process.sequencing.get"], v_args)
+    j = util.emit(ENDPOINTS["api.process.sequencing.get"], v_args, quiet=args.quiet)
 
     if v_args["tsv"]:
         i = 0
@@ -253,7 +253,7 @@ def wrap_sequencing_emit(args, metadata={}):
             v_args,
         ]
     }
-    util.emit(ENDPOINTS["api.process.sequencing.add"], payload)
+    util.emit(ENDPOINTS["api.process.sequencing.add"], payload, quiet=args.quiet)
 
 def wrap_library_emit(args, metadata={}):
     v_args = vars(args)
@@ -288,7 +288,7 @@ def wrap_library_emit(args, metadata={}):
 
     v_args["metadata"] = metadata
     v_args["biosamples"] = submit_biosamples
-    util.emit(ENDPOINTS["api.artifact.library.add"], v_args)
+    util.emit(ENDPOINTS["api.artifact.library.add"], v_args, quiet=args.quiet)
 
 def wrap_digitalresource_emit(args, metadata={}):
     v_args = vars(args)
@@ -352,11 +352,11 @@ def wrap_digitalresource_emit(args, metadata={}):
         "source_artifact": args.source_artifact,
         "bridge_artifact": args.bridge_artifact,
     }
-    util.emit(ENDPOINTS["api.artifact.file.add"], payload)
+    util.emit(ENDPOINTS["api.artifact.file.add"], payload, quiet=args.quiet)
 
 def wrap_tag_emit(args, metadata={}):
     v_args = vars(args)
     del v_args["func"]
 
     v_args["metadata"] = metadata
-    util.emit(ENDPOINTS["api.meta.tag.add"], v_args)
+    util.emit(ENDPOINTS["api.meta.tag.add"], v_args, quiet=args.quiet)

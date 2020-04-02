@@ -21,7 +21,7 @@ def get_config():
         sys.stderr.write('''echo '{"MAJORA_DOMAIN": "https:\\...\", "MAJORA_USER": "", "MAJORA_TOKEN": ""}' > ~/.ocarina''')
         sys.exit(1)
 
-def emit(endpoint, payload):
+def emit(endpoint, payload, quiet=False):
     config = get_config()
     payload["username"] = config["MAJORA_USER"]
     payload["token"] = config["MAJORA_TOKEN"]
@@ -33,12 +33,13 @@ def emit(endpoint, payload):
             json = payload,
     )
 
-    sys.stderr.write("Request" + "="*(80-len("Request ")) + '\n')
-    payload["token"] = '*'*len(payload["token"])
-    sys.stderr.write(json.dumps(payload, indent=4, sort_keys=True))
+    if not quiet:
+        sys.stderr.write("Request" + "="*(80-len("Request ")) + '\n')
+        payload["token"] = '*'*len(payload["token"])
+        sys.stderr.write(json.dumps(payload, indent=4, sort_keys=True))
 
-    sys.stderr.write("Response" + "="*(80-len("Request ")) + '\n')
-    sys.stderr.write(json.dumps(r.json(), indent=4, sort_keys=True))
+        sys.stderr.write("Response" + "="*(80-len("Request ")) + '\n')
+        sys.stderr.write(json.dumps(r.json(), indent=4, sort_keys=True))
 
     return r.json()
 
