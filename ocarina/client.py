@@ -15,6 +15,7 @@ ENDPOINTS = {
         "api.meta.tag.add": "/api/v2/meta/tag/add/",
 
         "api.artifact.biosample.get": "/api/v2/artifact/biosample/get/",
+        "api.process.sequencing.get": "/api/v2/process/sequencing/get/",
 }
 
 
@@ -122,10 +123,16 @@ def cli():
 
     get_parser = action_parser.add_parser("get")
     get_subparsers = get_parser.add_subparsers(title="actions")
+
     get_biosample_parser = get_subparsers.add_parser("biosample", parents=[get_parser], add_help=False,
             help="fetch a biosample")
     get_biosample_parser.add_argument("--central-sample-id", "--coguk-sample-id", required=True)
     get_biosample_parser.set_defaults(func=wrap_get_biosample)
+
+    get_sequencing_parser = get_subparsers.add_parser("sequencing", parents=[get_parser], add_help=False,
+            help="fetch a sequencing run")
+    get_sequencing_parser.add_argument("--run-name", required=True)
+    get_sequencing_parser.set_defaults(func=wrap_get_sequencing)
 
     args = parser.parse_args()
     if not args.quiet:
@@ -175,6 +182,10 @@ def wrap_get_biosample(args, metadata={}):
     v_args = vars(args)
     del v_args["func"]
     util.emit(ENDPOINTS["api.artifact.biosample.get"], v_args)
+def wrap_get_sequencing(args, metadata={}):
+    v_args = vars(args)
+    del v_args["func"]
+    util.emit(ENDPOINTS["api.process.sequencing.get"], v_args)
 
 def wrap_sequencing_emit(args, metadata={}):
     v_args = vars(args)
