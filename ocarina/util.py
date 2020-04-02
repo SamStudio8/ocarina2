@@ -9,20 +9,32 @@ import requests
 from . import client
 from . import version
 
-def get_config():
+def get_config(env=False):
     config = None
-    config_path = os.path.expanduser("~/.ocarina")
-    if os.path.exists(config_path):
-        with open(config_path) as config_fh:
-            config = json.load(config_fh)
-            return config
-    else:
-        sys.stderr.write('''No configuration file found.\nCopy the command from below to initialise,\nthen edit the file and fill in the configration keys.\n''')
-        sys.stderr.write('''echo '{"MAJORA_DOMAIN": "https:\\...\", "MAJORA_USER": "", "MAJORA_TOKEN": ""}' > ~/.ocarina''')
-        sys.exit(1)
 
-def emit(endpoint, payload, quiet=False, sudo_as=None):
-    config = get_config()
+    if not env:
+        config_path = os.path.expanduser("~/.ocarina")
+        if os.path.exists(config_path):
+            with open(config_path) as config_fh:
+                config = json.load(config_fh)
+                return config
+        else:
+            sys.stderr.write('''No configuration file found.\nCopy the command from below to initialise,\nthen edit the file and fill in the configration keys.\n''')
+            sys.stderr.write('''echo '{"MAJORA_DOMAIN": "https:\\...\", "MAJORA_USER": "", "MAJORA_TOKEN": ""}' > ~/.ocarina\n''')
+            sys.exit(1)
+    else:
+        config = {
+            "MAJORA_DOMAIN": os.getenv("MAJORA_DOMAIN"),
+            "MAJORA_USER": os.getenv("MAJORA_USER"),
+            "MAJORA_TOKEN": os.getenv("MAJORA_TOKEN"),
+        }
+        if None in config.values():
+            sys.stderr.write('''MAJORA_DOMAIN, MAJORA_USER, MAJORA_TOKEN must be set in your environment.\n''')
+            sys.exit(1)
+        return config
+
+
+def emit(config, endpoint, payload, quiet=False, sudo_as=None):
     payload["username"] = config["MAJORA_USER"]
     payload["token"] = config["MAJORA_TOKEN"]
     payload["client_name"] = "ocarina"

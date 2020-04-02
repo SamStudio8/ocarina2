@@ -20,10 +20,10 @@ ENDPOINTS = {
 
 
 def cli():
-    config = util.get_config()
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-q", "--quiet", help="suppress the large welcoming ocarina", action="store_true")
+    parser.add_argument("--env", help="use env vars instead of ~/.ocarina", action="store_true")
 
     action_parser = parser.add_subparsers()
     put_parser = action_parser.add_parser("put")
@@ -137,6 +137,7 @@ def cli():
     get_sequencing_parser.set_defaults(func=wrap_get_sequencing)
 
     args = parser.parse_args()
+    config = util.get_config(args.env)
     if not args.quiet:
         sys.stderr.write('''
                                  .@ 888S
@@ -168,9 +169,9 @@ X8%%S:              .8 8S888    :8.88S@:
                 if key not in metadata:
                     metadata[key] = {}
                 metadata[key][name] = value
-        args.func(args, metadata)
+        args.func(args, config, metadata)
 
-def wrap_single_biosample_emit(args, metadata={}):
+def wrap_single_biosample_emit(args, config, metadata={}):
     v_args = vars(args)
     del v_args["func"]
 
@@ -178,16 +179,16 @@ def wrap_single_biosample_emit(args, metadata={}):
     payload = {"biosamples": [
         v_args,
     ]}
-    util.emit(ENDPOINTS["api.artifact.biosample.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
+    util.emit(config, ENDPOINTS["api.artifact.biosample.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
 
 def wrap_get_biosample(args, metadata={}):
     v_args = vars(args)
     del v_args["func"]
-    util.emit(ENDPOINTS["api.artifact.biosample.get"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
+    util.emit(config, ENDPOINTS["api.artifact.biosample.get"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
 def wrap_get_sequencing(args, metadata={}):
     v_args = vars(args)
     del v_args["func"]
-    j = util.emit(ENDPOINTS["api.process.sequencing.get"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
+    j = util.emit(config, ENDPOINTS["api.process.sequencing.get"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
 
     if v_args["tsv"]:
         i = 0
@@ -256,7 +257,7 @@ def wrap_get_sequencing(args, metadata={}):
 
                         i += 1
 
-def wrap_sequencing_emit(args, metadata={}):
+def wrap_sequencing_emit(args, config, metadata={}):
     v_args = vars(args)
     del v_args["func"]
 
@@ -268,9 +269,9 @@ def wrap_sequencing_emit(args, metadata={}):
             v_args,
         ]
     }
-    util.emit(ENDPOINTS["api.process.sequencing.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
+    util.emit(config, ENDPOINTS["api.process.sequencing.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
 
-def wrap_library_emit(args, metadata={}):
+def wrap_library_emit(args, config, metadata={}):
     v_args = vars(args)
     del v_args["func"]
 
@@ -303,9 +304,9 @@ def wrap_library_emit(args, metadata={}):
 
     v_args["metadata"] = metadata
     v_args["biosamples"] = submit_biosamples
-    util.emit(ENDPOINTS["api.artifact.library.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
+    util.emit(config, ENDPOINTS["api.artifact.library.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
 
-def wrap_digitalresource_emit(args, metadata={}):
+def wrap_digitalresource_emit(args, config, metadata={}):
     v_args = vars(args)
 
     path = os.path.abspath(v_args["path"])
@@ -341,7 +342,6 @@ def wrap_digitalresource_emit(args, metadata={}):
         # Send a single directory and filename
         path = path[-2:]
         if not args.no_user:
-            config = util.get_config()
             path = [config["MAJORA_USER"]] + path
         path = ['null'] + path # dont ask
     path = os.path.sep.join(path)
@@ -367,11 +367,11 @@ def wrap_digitalresource_emit(args, metadata={}):
         "source_artifact": args.source_artifact,
         "bridge_artifact": args.bridge_artifact,
     }
-    util.emit(ENDPOINTS["api.artifact.file.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
+    util.emit(config, ENDPOINTS["api.artifact.file.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
 
-def wrap_tag_emit(args, metadata={}):
+def wrap_tag_emit(args, config, metadata={}):
     v_args = vars(args)
     del v_args["func"]
 
     v_args["metadata"] = metadata
-    util.emit(ENDPOINTS["api.meta.tag.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
+    util.emit(config, ENDPOINTS["api.meta.tag.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
