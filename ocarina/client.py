@@ -135,6 +135,7 @@ def cli():
             help="fetch a sequencing run")
     get_sequencing_parser.add_argument("--run-name", required=True, nargs='+')
     get_sequencing_parser.add_argument("--tsv", action="store_true")
+    get_sequencing_parser.add_argument("--tsv-show-dummy", action="store_true")
     get_sequencing_parser.set_defaults(func=wrap_get_sequencing)
 
     args = parser.parse_args()
@@ -226,7 +227,7 @@ def wrap_get_sequencing(args, config, metadata={}):
                             lib_master[mk] = None
 
                     for b in biosamples:
-                        if not b.get("adm0"):
+                        if not b.get("adm0") and not v_args["tsv_show_dummy"]:
                             sys.stderr.write("Skipping row: %s.%s.%s as it does not have a complete set of headers...\n" % (run, l["library_name"], b["central_sample_id"]))
                             continue
                         try:
