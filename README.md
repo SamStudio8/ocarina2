@@ -71,7 +71,7 @@ ocarina put library --library-name "BIRM-20200326-1844" \
 
 ```
 ocarina put sequencing --library-name BIRM-20200326-1844 \
-                   --sequencing-id "00000101-3fcb-421e-85e0-db5d48de28af" \
+                   --run-name "20200409-1840_MYRUN_000000_FAK12345" \
                    --instrument-make "OXFORD_NANOPORE" \
                    --instrument-model "GridION"
 ```
