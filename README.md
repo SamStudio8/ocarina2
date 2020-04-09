@@ -23,6 +23,16 @@ X8%%S:              .8 8S888    :8.88S@:
 # ocarina
 Ocarina is a simple Python requests program for shouting at the [Majora](https://github.com/SamStudio8/majora) API.
 
+## Configuration
+On first run, `ocarina` will give you a command to generate the config file.
+Edit the configuration and supply the three required parameters:
+
+* `MAJORA_DOMAIN` the base URL of the Majora instance to send requests to
+* `MAJORA_USER` your username on Majora
+* `MAJORA_TOKEN` your API key, you can get this from your profile
+
+Alternatively, you can specify `--env` and set these configuration parameters in your environment.
+
 ## Basic examples
 
 ### Add a biosample
@@ -61,7 +71,7 @@ ocarina put library --library-name "BIRM-20200326-1844" \
 
 ```
 ocarina put sequencing --library-name BIRM-20200326-1844 \
-                   --sequencing-id "00000101-3fcb-421e-85e0-db5d48de28af" \
+                   --run-name "20200409-1840_MYRUN_000000_FAK12345" \
                    --instrument-make "OXFORD_NANOPORE" \
                    --instrument-model "GridION"
 ```
