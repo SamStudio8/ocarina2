@@ -48,12 +48,21 @@ def emit(config, endpoint, payload, quiet=False, sudo_as=None):
             json = payload,
     )
 
+    if r.status_code != 200:
+        sys.stderr.write("Request" + "="*(80-len("Request ")) + '\n')
+        payload["token"] = '*'*len(payload["token"])
+        sys.stderr.write(json.dumps(payload, indent=4, sort_keys=True))
+        sys.stderr.write("\nResponse" + "="*(80-len("Request ")) + '\n')
+        sys.stderr.write("STATUS CODE %d\n" % r.status_code)
+        sys.stderr.write(r.text)
+        sys.exit(2)
+
     if not quiet:
         sys.stderr.write("Request" + "="*(80-len("Request ")) + '\n')
         payload["token"] = '*'*len(payload["token"])
         sys.stderr.write(json.dumps(payload, indent=4, sort_keys=True))
 
-        sys.stderr.write("Response" + "="*(80-len("Request ")) + '\n')
+        sys.stderr.write("\nResponse" + "="*(80-len("Request ")) + '\n')
         sys.stderr.write(json.dumps(r.json(), indent=4, sort_keys=True))
 
     return r.json()
