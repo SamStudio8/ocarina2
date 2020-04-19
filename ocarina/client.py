@@ -98,6 +98,7 @@ def cli():
             help="register a local digital resource (file) over the Majora API")
     digitalresource_parser.add_argument("--bridge-artifact", "--biosample", required=False)
     digitalresource_parser.add_argument("--source-artifact", "--source-file", required=False, nargs='+')
+    digitalresource_parser.add_argument("--publish-group", required=False)
     digitalresource_parser.add_argument("--source-group", required=False, nargs='+')
     digitalresource_parser.add_argument("--pipeline", required=True, nargs=4,
             metavar=["pipe_hook", "pipe_category", "pipe_name", "pipe_version"])
@@ -366,6 +367,7 @@ def wrap_digitalresource_emit(args, config, metadata={}):
         "pipe_name": args.pipeline[2],
         "pipe_version": args.pipeline[3],
 
+        "publish_group": args.publish_group,
         "source_group": args.source_group,
         "source_artifact": args.source_artifact,
         "bridge_artifact": args.bridge_artifact,
