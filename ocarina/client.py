@@ -13,6 +13,7 @@ ENDPOINTS = {
         "api.process.sequencing.add": "/api/v2/process/sequencing/add/",
         "api.artifact.file.add": "/api/v2/artifact/file/add/",
         "api.meta.tag.add": "/api/v2/meta/tag/add/",
+        "api.pag.accession.add": "/api/v2/pag/accession/add/",
 
         "api.artifact.biosample.get": "/api/v2/artifact/biosample/get/",
         "api.process.sequencing.get": "/api/v2/process/sequencing/get/",
@@ -122,6 +123,15 @@ def cli():
     tpg.add_argument("--group")
     tpg.add_argument("--process")
     tag_parser.set_defaults(func=wrap_tag_emit)
+
+    publish_parser = subparsers.add_parser("publish", parents=[put_parser], add_help=False,
+            help="Add a public accession to a published artifact group")
+    publish_parser.add_argument("--publish-group", required=True)
+    publish_parser.add_argument("--service", required=True)
+    publish_parser.add_argument("--accession", required=True)
+    #publish_parser.add_argument("--accession-2", required=False)
+    #publish_parser.add_argument("--accession-3", required=False)
+    publish_parser.set_defaults(func=wrap_publish_emit)
 
 
     get_parser = action_parser.add_parser("get")
@@ -381,3 +391,10 @@ def wrap_tag_emit(args, config, metadata={}):
 
     v_args["metadata"] = metadata
     util.emit(config, ENDPOINTS["api.meta.tag.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
+
+def wrap_publish_emit(args, config, metadata={}):
+    v_args = vars(args)
+    del v_args["func"]
+    v_args["metadata"] = metadata
+    util.emit(config, ENDPOINTS["api.pag.accession.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
+
