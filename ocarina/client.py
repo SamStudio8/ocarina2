@@ -12,7 +12,10 @@ ENDPOINTS = {
         "api.artifact.library.add": "/api/v2/artifact/library/add/",
         "api.process.sequencing.add": "/api/v2/process/sequencing/add/",
         "api.artifact.file.add": "/api/v2/artifact/file/add/",
+
         "api.meta.tag.add": "/api/v2/meta/tag/add/",
+        "api.meta.metric.add": "/api/v2/meta/metric/add/",
+
         "api.pag.accession.add": "/api/v2/pag/accession/add/",
 
         "api.artifact.biosample.get": "/api/v2/artifact/biosample/get/",
@@ -123,6 +126,14 @@ def cli():
     tpg.add_argument("--group")
     tpg.add_argument("--process")
     tag_parser.set_defaults(func=wrap_tag_emit)
+
+
+    metric_parser = subparsers.add_parser("metric", parents=[put_parser], add_help=False,
+            help="Add metrics to an artifact")
+    mpg = metric_parser.add_mutually_exclusive_group(required=True)
+    mpg.add_argument("--artifact")
+    mpg.add_argument("--artifact-path")
+    metric_parser.set_defaults(func=wrap_metric_emit)
 
     publish_parser = subparsers.add_parser("publish", parents=[put_parser], add_help=False,
             help="Add a public accession to a published artifact group")
@@ -391,6 +402,16 @@ def wrap_tag_emit(args, config, metadata={}):
 
     v_args["metadata"] = metadata
     util.emit(config, ENDPOINTS["api.meta.tag.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
+
+def wrap_metric_emit(args, config, metadata={}):
+    v_args = vars(args)
+    del v_args["func"]
+
+    if v_args["artifact_path"]:
+        v_args["artifact_path"] = os.path.abspath(v_args["artifact_path"])
+    v_args["metrics"] = metadata
+    del v_args["metadata"]
+    util.emit(config, ENDPOINTS["api.meta.metric.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
 
 def wrap_publish_emit(args, config, metadata={}):
     v_args = vars(args)
