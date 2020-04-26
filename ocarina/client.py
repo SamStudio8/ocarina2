@@ -15,6 +15,7 @@ ENDPOINTS = {
 
         "api.meta.tag.add": "/api/v2/meta/tag/add/",
         "api.meta.metric.add": "/api/v2/meta/metric/add/",
+        "api.meta.qc.add": "/api/v2/meta/qc/add/",
 
         "api.pag.accession.add": "/api/v2/pag/accession/add/",
 
@@ -134,6 +135,15 @@ def cli():
     mpg.add_argument("--artifact")
     mpg.add_argument("--artifact-path")
     metric_parser.set_defaults(func=wrap_metric_emit)
+
+
+    qc_parser = subparsers.add_parser("qc", parents=[put_parser], add_help=False,
+            help="Apply QC to a PAG")
+    qc_parser.add_argument("--publish-group", required=True)
+    qc_parser.add_argument("--test-name", required=True)
+    qc_parser.add_argument("--test-version", type=int, required=True)
+    qc_parser.set_defaults(func=wrap_qc_emit)
+
 
     publish_parser = subparsers.add_parser("publish", parents=[put_parser], add_help=False,
             help="Add a public accession to a published artifact group")
@@ -412,6 +422,12 @@ def wrap_metric_emit(args, config, metadata={}):
     v_args["metrics"] = metadata
     del v_args["metadata"]
     util.emit(config, ENDPOINTS["api.meta.metric.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
+
+def wrap_qc_emit(args, config, metadata={}):
+    v_args = vars(args)
+    del v_args["func"]
+    del v_args["metadata"]
+    util.emit(config, ENDPOINTS["api.meta.qc.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
 
 def wrap_publish_emit(args, config, metadata={}):
     v_args = vars(args)
