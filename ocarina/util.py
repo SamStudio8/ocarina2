@@ -43,6 +43,13 @@ def emit(config, endpoint, payload, quiet=False, sudo_as=None):
     if sudo_as:
         payload["sudo_as"] = sudo_as
 
+    del payload["quiet"]
+    del payload["env"]
+    angry = False
+    if payload["angry"]:
+        angry = True
+    del payload["angry"]
+
     r = requests.post(config["MAJORA_DOMAIN"] + endpoint + '/',
             headers = {"Content-Type": "application/json", "charset": "UTF-8"},
             json = payload,
@@ -64,6 +71,14 @@ def emit(config, endpoint, payload, quiet=False, sudo_as=None):
 
         sys.stderr.write("\nResponse" + "="*(80-len("Request ")) + '\n')
         sys.stderr.write(json.dumps(r.json(), indent=4, sort_keys=True))
+
+    try:
+        ret_json = r.json()
+    except:
+        sys.exit(3)
+
+    if ret_json["errors"] > 0 and angry:
+        sys.exit(1)
 
     return r.json()
 
