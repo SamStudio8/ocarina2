@@ -17,6 +17,7 @@ ENDPOINTS = {
         "api.meta.metric.add": "/api/v2/meta/metric/add/",
         "api.meta.qc.add": "/api/v2/meta/qc/add/",
 
+        "api.pag.qc.get": "/api/v2/pag/qc/get/",
         "api.pag.accession.add": "/api/v2/pag/accession/add/",
 
         "api.artifact.biosample.get": "/api/v2/artifact/biosample/get/",
@@ -171,6 +172,14 @@ def cli():
     get_sequencing_parser.add_argument("--tsv-show-dummy", action="store_true")
     get_sequencing_parser.set_defaults(func=wrap_get_sequencing)
 
+
+    get_pag_parser = get_subparsers.add_parser("pag", parents=[get_parser], add_help=False,
+            help="Get all PAGs that have passed a QC test")
+    get_pag_parser.add_argument("--test-name", required=True)
+    get_pag_parser.set_defaults(func=wrap_get_qc)
+
+
+
     args = parser.parse_args()
     config = util.get_config(args.env)
     if not args.quiet:
@@ -220,6 +229,12 @@ def wrap_get_biosample(args, config, metadata={}):
     v_args = vars(args)
     del v_args["func"]
     util.emit(config, ENDPOINTS["api.artifact.biosample.get"], v_args, quiet=args.quiet)
+
+def wrap_get_qc(args, config, metadata={}):
+    v_args = vars(args)
+    del v_args["func"]
+    util.emit(config, ENDPOINTS["api.pag.qc.get"], v_args, quiet=args.quiet)
+
 def wrap_get_sequencing(args, config, metadata={}):
     v_args = vars(args)
     del v_args["func"]
