@@ -176,6 +176,7 @@ def cli():
     get_pag_parser = get_subparsers.add_parser("pag", parents=[get_parser], add_help=False,
             help="Get all PAGs that have passed a QC test")
     get_pag_parser.add_argument("--test-name", required=True)
+    get_pag_parser.add_argument("--pass-only", action="store_true")
     get_pag_parser.set_defaults(func=wrap_get_qc)
 
 
