@@ -177,6 +177,7 @@ def cli():
             help="Get all PAGs that have passed a QC test")
     get_pag_parser.add_argument("--test-name", required=True)
     get_pag_parser.add_argument("--pass-only", action="store_true")
+    get_pag_parser.add_argument("--ls-files", action="store_true")
     get_pag_parser.set_defaults(func=wrap_get_qc)
 
 
@@ -234,7 +235,20 @@ def wrap_get_biosample(args, config, metadata={}):
 def wrap_get_qc(args, config, metadata={}):
     v_args = vars(args)
     del v_args["func"]
-    util.emit(config, ENDPOINTS["api.pag.qc.get"], v_args, quiet=args.quiet)
+    j = util.emit(config, ENDPOINTS["api.pag.qc.get"], v_args, quiet=args.quiet)
+
+    if args.ls_files:
+        if len(j["get"]) >= 1:
+            for pag in j["get"]:
+                if "Digital Resource" in j["get"][pag]["artifacts"]:
+                    for dra in j["get"][pag]["artifacts"]["Digital Resource"]:
+                        sys.stdout.write("\t".join([
+                            pag,
+                            dra["current_kind"],
+                            dra["current_path"],
+                            dra["current_hash"],
+                            str(dra["current_size"]),
+                        ]) + '\n')
 
 def wrap_get_sequencing(args, config, metadata={}):
     v_args = vars(args)
