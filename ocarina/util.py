@@ -43,12 +43,15 @@ def emit(config, endpoint, payload, quiet=False, sudo_as=None):
     if sudo_as:
         payload["sudo_as"] = sudo_as
 
-    del payload["quiet"]
-    del payload["env"]
+    if "quiet" in payload:
+        del payload["quiet"]
+    if "env" in payload:
+        del payload["env"]
+
     angry = False
-    if payload["angry"]:
+    if "angry" in payload:
         angry = True
-    del payload["angry"]
+        del payload["angry"]
 
     r = requests.post(config["MAJORA_DOMAIN"] + endpoint + '/',
             headers = {"Content-Type": "application/json", "charset": "UTF-8"},
