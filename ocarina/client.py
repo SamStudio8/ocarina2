@@ -251,6 +251,7 @@ def wrap_get_qc(args, config, metadata={}):
                             dra["current_path"],
                             dra["current_hash"],
                             str(dra["current_size"]),
+                            j["get"][pag]["status"],
                         ]) + '\n')
 
 def wrap_get_sequencing(args, config, metadata={}):
