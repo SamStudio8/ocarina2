@@ -50,6 +50,8 @@ def cli():
 
     biosample_parser.add_argument("--source-age")
     biosample_parser.add_argument("--source-sex")
+    biosample_parser.add_argument("--source-category")
+    biosample_parser.add_argument("--source-setting")
     biosample_parser.add_argument("--secondary-accession", "--gisaid-accession")
     biosample_parser.add_argument("--secondary-identifier", "--gisaid-identifier")
     biosample_parser.add_argument("--adm2")
@@ -61,6 +63,7 @@ def cli():
     biosample_parser.add_argument("--sample-type-received")
     biosample_parser.add_argument("--sender-sample-id", "--local-sample-id")
     biosample_parser.add_argument("--swab-site")
+    biosample_parser.add_argument("--sampling-strategy")
     biosample_parser.set_defaults(func=wrap_single_biosample_emit)
 
 
