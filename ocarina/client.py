@@ -24,6 +24,7 @@ ENDPOINTS = {
         "api.process.sequencing.get": "/api/v2/process/sequencing/get/",
 
         "api.majora.summary.get": "/api/v2/majora/summary/get/",
+        "api.majora.task.get": "/api/v2/majora/task/get/",
 }
 
 
@@ -193,6 +194,12 @@ def cli():
     get_summary_parser.add_argument("--md", action="store_true")
     get_summary_parser.set_defaults(func=wrap_get_summary)
 
+
+    get_task_parser = get_subparsers.add_parser("task", parents=[get_parser], add_help=False,
+            help="Get summary metrics")
+    get_task_parser.add_argument("--task-id", required=True)
+    get_task_parser.set_defaults(func=wrap_get_task)
+
     args = parser.parse_args()
     config = util.get_config(args.env)
     if not args.quiet:
@@ -261,6 +268,11 @@ def wrap_get_summary(args, config, metadata={}):
                     group["fail_count"],
                     group["fail_count"]/group["count"] * 100,
                 ))
+
+def wrap_get_task(args, config, metadata={}):
+    v_args = vars(args)
+    del v_args["func"]
+    j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=args.quiet)
 
 def wrap_get_qc(args, config, metadata={}):
     v_args = vars(args)
