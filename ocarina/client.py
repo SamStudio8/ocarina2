@@ -22,6 +22,8 @@ ENDPOINTS = {
 
         "api.artifact.biosample.get": "/api/v2/artifact/biosample/get/",
         "api.process.sequencing.get": "/api/v2/process/sequencing/get/",
+
+        "api.majora.summary.get": "/api/v2/majora/summary/get/",
 }
 
 
@@ -184,6 +186,11 @@ def cli():
     get_pag_parser.set_defaults(func=wrap_get_qc)
 
 
+    get_summary_parser = get_subparsers.add_parser("summary", parents=[get_parser], add_help=False,
+            help="Get summary metrics")
+    get_summary_parser.add_argument("--gte-date")
+    get_summary_parser.add_argument("--md", action="store_true")
+    get_summary_parser.set_defaults(func=wrap_get_summary)
 
     args = parser.parse_args()
     config = util.get_config(args.env)
@@ -234,6 +241,25 @@ def wrap_get_biosample(args, config, metadata={}):
     v_args = vars(args)
     del v_args["func"]
     util.emit(config, ENDPOINTS["api.artifact.biosample.get"], v_args, quiet=args.quiet)
+
+def wrap_get_summary(args, config, metadata={}):
+    v_args = vars(args)
+    del v_args["func"]
+    j = util.emit(config, ENDPOINTS["api.majora.summary.get"], v_args, quiet=args.quiet)
+
+    if args.md:
+        if len(j["get"]["site_qc"]) >= 1:
+            print("| Site | Count | Pass | Fail |")
+            print("|------|------:|-----:|-----:|")
+            for group in j["get"]["site_qc"]:
+                print("| %s | %d | %d (%.2f%%) | %d (%.2f%%) |" % (
+                    group["site"],
+                    group["count"],
+                    group["pass_count"],
+                    group["pass_count"]/group["count"] * 100,
+                    group["fail_count"],
+                    group["fail_count"]/group["count"] * 100,
+                ))
 
 def wrap_get_qc(args, config, metadata={}):
     v_args = vars(args)
