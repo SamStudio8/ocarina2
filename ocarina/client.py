@@ -163,6 +163,7 @@ def cli():
     publish_parser.add_argument("--accession", required=True)
     publish_parser.add_argument("--accession2", required=False)
     publish_parser.add_argument("--accession3", required=False)
+    publish_parser.add_argument("--public", action="store_true")
     publish_parser.set_defaults(func=wrap_publish_emit)
 
 
