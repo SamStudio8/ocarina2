@@ -166,6 +166,8 @@ def cli():
 
 
     get_parser = action_parser.add_parser("get")
+    get_parser.add_argument("--task-id", help="Request the result from the Majora task endpoint")
+    get_parser.add_argument("--task-del", help="Destroy the task result if this command finishes successfully", action="store_true")
     get_subparsers = get_parser.add_subparsers(title="actions")
 
     get_biosample_parser = get_subparsers.add_parser("biosample", parents=[get_parser], add_help=False,
@@ -195,12 +197,6 @@ def cli():
     get_summary_parser.add_argument("--gte-date")
     get_summary_parser.add_argument("--md", action="store_true")
     get_summary_parser.set_defaults(func=wrap_get_summary)
-
-
-    get_task_parser = get_subparsers.add_parser("task", parents=[get_parser], add_help=False,
-            help="Get a Celery task")
-    get_task_parser.add_argument("--task-id", required=True)
-    get_task_parser.set_defaults(func=wrap_get_task)
 
 
     del_parser = action_parser.add_parser("del")
@@ -293,7 +289,11 @@ def wrap_del_task(args, config, metadata={}):
 def wrap_get_qc(args, config, metadata={}):
     v_args = vars(args)
     del v_args["func"]
-    j = util.emit(config, ENDPOINTS["api.pag.qc.get"], v_args, quiet=args.quiet)
+
+    if args.task_id:
+        j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=args.quiet)
+    else:
+        j = util.emit(config, ENDPOINTS["api.pag.qc.get"], v_args, quiet=args.quiet)
 
     if args.ls_files:
         if len(j["get"]) >= 1:
@@ -308,6 +308,8 @@ def wrap_get_qc(args, config, metadata={}):
                             str(dra["current_size"]),
                             j["get"][pag]["status"],
                         ]) + '\n')
+    if args.task_del:
+        j = util.emit(config, ENDPOINTS["api.majora.task.delete"], v_args, quiet=args.quiet)
 
 def wrap_get_sequencing(args, config, metadata={}):
     v_args = vars(args)
