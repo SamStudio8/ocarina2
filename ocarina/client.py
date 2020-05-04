@@ -25,6 +25,8 @@ ENDPOINTS = {
 
         "api.majora.summary.get": "/api/v2/majora/summary/get/",
         "api.majora.task.get": "/api/v2/majora/task/get/",
+
+        "api.majora.task.delete": "/api/v2/majora/task/delete/",
 }
 
 
@@ -196,9 +198,18 @@ def cli():
 
 
     get_task_parser = get_subparsers.add_parser("task", parents=[get_parser], add_help=False,
-            help="Get summary metrics")
+            help="Get a Celery task")
     get_task_parser.add_argument("--task-id", required=True)
     get_task_parser.set_defaults(func=wrap_get_task)
+
+
+    del_parser = action_parser.add_parser("del")
+    del_subparsers = del_parser.add_subparsers(title="actions")
+
+    del_task_parser = del_subparsers.add_parser("task", parents=[del_parser], add_help=False,
+            help="Delete the results of a Celery task")
+    del_task_parser.add_argument("--task-id", required=True)
+    del_task_parser.set_defaults(func=wrap_del_task)
 
     args = parser.parse_args()
     config = util.get_config(args.env)
@@ -273,6 +284,11 @@ def wrap_get_task(args, config, metadata={}):
     v_args = vars(args)
     del v_args["func"]
     j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=args.quiet)
+
+def wrap_del_task(args, config, metadata={}):
+    v_args = vars(args)
+    del v_args["func"]
+    j = util.emit(config, ENDPOINTS["api.majora.task.delete"], v_args, quiet=args.quiet)
 
 def wrap_get_qc(args, config, metadata={}):
     v_args = vars(args)
