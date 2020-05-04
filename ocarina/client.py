@@ -292,6 +292,9 @@ def wrap_get_qc(args, config, metadata={}):
 
     if args.task_id:
         j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=args.quiet)
+        #TODO move this to part of emit
+        if j.get("task", {}).get("state", "") != "SUCCESS":
+            return
     else:
         j = util.emit(config, ENDPOINTS["api.pag.qc.get"], v_args, quiet=args.quiet)
 
@@ -308,7 +311,7 @@ def wrap_get_qc(args, config, metadata={}):
                             str(dra["current_size"]),
                             j["get"][pag]["status"],
                         ]) + '\n')
-    if args.task_del:
+    if args.task_del and j.get("task", {}).get("state", "") == "SUCCESS":
         j = util.emit(config, ENDPOINTS["api.majora.task.delete"], v_args, quiet=args.quiet)
 
 def wrap_get_sequencing(args, config, metadata={}):
