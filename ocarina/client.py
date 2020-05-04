@@ -158,10 +158,11 @@ def cli():
     publish_parser = subparsers.add_parser("publish", parents=[put_parser], add_help=False,
             help="Add a public accession to a published artifact group")
     publish_parser.add_argument("--publish-group", required=True)
+    publish_parser.add_argument("--contains", action="store_true")
     publish_parser.add_argument("--service", required=True)
     publish_parser.add_argument("--accession", required=True)
-    #publish_parser.add_argument("--accession-2", required=False)
-    #publish_parser.add_argument("--accession-3", required=False)
+    publish_parser.add_argument("--accession2", required=False)
+    publish_parser.add_argument("--accession3", required=False)
     publish_parser.set_defaults(func=wrap_publish_emit)
 
 
