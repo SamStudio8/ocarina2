@@ -35,7 +35,7 @@ def cli():
     parser = argparse.ArgumentParser()
     parser.add_argument("-q", "--quiet", help="suppress the large welcoming ocarina", action="store_true")
     parser.add_argument("--env", help="use env vars instead of ~/.ocarina", action="store_true")
-    parser.add_argument("--angry", help="exit if API returns errors > 0", action="store_true")
+    parser.add_argument("--angry", help="exit if API returns errors > 0", action="store_true", default=False)
 
     action_parser = parser.add_subparsers()
     put_parser = action_parser.add_parser("put")
@@ -530,5 +530,9 @@ def wrap_publish_emit(args, config, metadata={}):
     v_args = vars(args)
     del v_args["func"]
     v_args["metadata"] = metadata
-    util.emit(config, ENDPOINTS["api.pag.accession.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
+    j = util.emit(config, ENDPOINTS["api.pag.accession.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
+    if j["errors"] == 0:
+        print(0, args.publish_group, j["updated"][0][2])
+    else:
+        print(1, args.publish_group, '-')
 

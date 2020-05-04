@@ -50,8 +50,9 @@ def emit(config, endpoint, payload, quiet=False, sudo_as=None):
 
     angry = False
     if "angry" in payload:
-        angry = True
-        del payload["angry"]
+        if payload["angry"]:
+            angry = True
+            del payload["angry"]
 
     r = requests.post(config["MAJORA_DOMAIN"] + endpoint + '/',
             headers = {"Content-Type": "application/json", "charset": "UTF-8"},
