@@ -191,6 +191,8 @@ def cli():
     get_pag_parser.add_argument("--dra-current-kind")
     get_pag_parser.add_argument("--pass-only", action="store_true")
     get_pag_parser.add_argument("--ls-files", action="store_true")
+
+    get_pag_parser.add_argument("--ofield", nargs=3, metavar=("field", "as", "default"), action="append")
     get_pag_parser.set_defaults(func=wrap_get_qc)
 
 
@@ -313,6 +315,36 @@ def wrap_get_qc(args, config, metadata={}):
                             str(dra["current_size"]),
                             j["get"][pag]["status"],
                         ]) + '\n')
+    elif args.ofield:
+        if len(j["get"]) >= 1:
+            for pag in j["get"]:
+                # Flatten the PAG to unique distinguished objects
+                metadata = {k:v for k,v in j["get"][pag].items() if type(v) != dict and type(v) != list}
+                for artifact_g in j["get"][pag]["artifacts"]:
+                    for artifact in j["get"][pag]["artifacts"][artifact_g]:
+                        for k, v in artifact.items():
+                            if k not in metadata and type(v) != dict and type(v) != list:
+                                metadata[k] = v
+                            elif k in metadata:
+                                del metadata[k] # unique stuff only for now
+                        if "metadata" in artifact:
+                            for namespace in artifact["metadata"]:
+                                for mkey, mvalue in artifact["metadata"][namespace].items():
+                                    mkey = "%s.%s" % (namespace, mkey)
+                                    if mkey not in metadata:
+                                        metadata[mkey] = mvalue
+                                    else:
+                                        del metadata[mkey]
+
+                row = {}
+                for ofield in args.ofield:
+                    field, as_, default = ofield
+                    if field in metadata and metadata[field] is not None:
+                        v = metadata[field]
+                    else:
+                        v = default
+                    print(as_, v)
+
     if args.task_del and j.get("task", {}).get("state", "") == "SUCCESS":
         j = util.emit(config, ENDPOINTS["api.majora.task.delete"], v_args, quiet=args.quiet)
 
