@@ -40,6 +40,7 @@ def cli():
     action_parser = parser.add_subparsers()
     put_parser = action_parser.add_parser("put")
     put_parser.add_argument("-m", "--metadata", action='append', nargs=3, metavar=('tag', 'key', 'value'))
+    put_parser.add_argument("--metric", action='append', nargs=3, metavar=('tag', 'key', 'value'))
     put_parser.add_argument("--sudo-as", required=False)
 
     subparsers = put_parser.add_subparsers(title="actions")
@@ -244,24 +245,47 @@ X8%%S:              .8 8S888    :8.88S@:
                 if key not in metadata:
                     metadata[key] = {}
                 metadata[key][name] = value
-        args.func(args, config, metadata)
+        metrics = {}
+        if hasattr(args, "metric") and args.metric:
+            for entry in args.metric:
+                key, name, value = entry
 
-def wrap_single_biosample_emit(args, config, metadata={}):
+                ks = key.split('.')
+                if len(ks) == 1:
+                    k_namespace, k_record = ks[0], None
+                else:
+                    k_namespace, k_record = ks
+                if k_namespace not in metrics:
+                    metrics[k_namespace] = {}
+
+                if k_record:
+                    if "records" not in metrics[k_namespace]:
+                        metrics[k_namespace]["records"] = {}
+                    if k_record not in metrics[k_namespace]["records"]:
+                        metrics[k_namespace]["records"][k_record] = {}
+                    metrics[k_namespace]["records"][k_record][name] = value
+                else:
+                    metrics[k_namespace][name] = value
+        args.func(args, config, metadata=metadata, metrics=metrics)
+
+def wrap_single_biosample_emit(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
+    del v_args["metric"]
 
     v_args["metadata"] = metadata
+    v_args["metrics"] = metrics
     payload = {"biosamples": [
         v_args,
     ]}
     util.emit(config, ENDPOINTS["api.artifact.biosample.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
 
-def wrap_get_biosample(args, config, metadata={}):
+def wrap_get_biosample(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
     util.emit(config, ENDPOINTS["api.artifact.biosample.get"], v_args, quiet=args.quiet)
 
-def wrap_get_summary(args, config, metadata={}):
+def wrap_get_summary(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
     j = util.emit(config, ENDPOINTS["api.majora.summary.get"], v_args, quiet=args.quiet)
@@ -280,17 +304,17 @@ def wrap_get_summary(args, config, metadata={}):
                     group["fail_count"]/group["count"] * 100,
                 ))
 
-def wrap_get_task(args, config, metadata={}):
+def wrap_get_task(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
     j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=args.quiet)
 
-def wrap_del_task(args, config, metadata={}):
+def wrap_del_task(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
     j = util.emit(config, ENDPOINTS["api.majora.task.delete"], v_args, quiet=args.quiet)
 
-def wrap_get_qc(args, config, metadata={}):
+def wrap_get_qc(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
 
@@ -348,7 +372,7 @@ def wrap_get_qc(args, config, metadata={}):
     if args.task_del and j.get("task", {}).get("state", "") == "SUCCESS":
         j = util.emit(config, ENDPOINTS["api.majora.task.delete"], v_args, quiet=args.quiet)
 
-def wrap_get_sequencing(args, config, metadata={}):
+def wrap_get_sequencing(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
     j = util.emit(config, ENDPOINTS["api.process.sequencing.get"], v_args, quiet=args.quiet)
@@ -420,7 +444,7 @@ def wrap_get_sequencing(args, config, metadata={}):
 
                         i += 1
 
-def wrap_sequencing_emit(args, config, metadata={}):
+def wrap_sequencing_emit(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
 
@@ -434,7 +458,7 @@ def wrap_sequencing_emit(args, config, metadata={}):
     }
     util.emit(config, ENDPOINTS["api.process.sequencing.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
 
-def wrap_library_emit(args, config, metadata={}):
+def wrap_library_emit(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
 
@@ -469,7 +493,7 @@ def wrap_library_emit(args, config, metadata={}):
     v_args["biosamples"] = submit_biosamples
     util.emit(config, ENDPOINTS["api.artifact.library.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
 
-def wrap_digitalresource_emit(args, config, metadata={}):
+def wrap_digitalresource_emit(args, config, metadata={}, metrics={}):
     v_args = vars(args)
 
     path = os.path.abspath(v_args["path"])
@@ -535,14 +559,14 @@ def wrap_digitalresource_emit(args, config, metadata={}):
     }
     util.emit(config, ENDPOINTS["api.artifact.file.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
 
-def wrap_tag_emit(args, config, metadata={}):
+def wrap_tag_emit(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
 
     v_args["metadata"] = metadata
     util.emit(config, ENDPOINTS["api.meta.tag.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
 
-def wrap_metric_emit(args, config, metadata={}):
+def wrap_metric_emit(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
 
@@ -552,13 +576,13 @@ def wrap_metric_emit(args, config, metadata={}):
     del v_args["metadata"]
     util.emit(config, ENDPOINTS["api.meta.metric.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
 
-def wrap_qc_emit(args, config, metadata={}):
+def wrap_qc_emit(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
     del v_args["metadata"]
     util.emit(config, ENDPOINTS["api.meta.qc.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
 
-def wrap_publish_emit(args, config, metadata={}):
+def wrap_publish_emit(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
     v_args["metadata"] = metadata
