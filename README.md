@@ -52,8 +52,8 @@ ocarina put library --library-name "BIRM-20200326-1844" \
                 --library-seq-kit "LSK109" \
                 --library-seq-protocol "LIGATION" \
                 --library-layout-config "SINGLE" \
-                --biosample HOOT-OCARINA-101 VIRAL_RNA PCR AMPLICON \
-                --biosample HOOT-OCARINA-102 GENOMIC PCR AMPLICON
+                --biosample HOOT-OCARINA-101 VIRAL_RNA PCR AMPLICON PROTOCOL1 PRIMERS1 \
+                --biosample HOOT-OCARINA-102 GENOMIC PCR AMPLICON PROTOCOL2 PRIMERS2
 ```
 
 Or use a shortcut if all biosamples have the same library properties
@@ -64,7 +64,7 @@ ocarina put library --library-name "BIRM-20200326-1844" \
                 --library-seq-protocol "LIGATION" \
                 --library-layout-config "SINGLE" \
                 --biosamples HOOT-OCARINA-101 HOOT-OCARINA-102 \
-                --apply-all-library VIRAL_RNA PCR AMPLICON
+                --apply-all-library VIRAL_RNA PCR AMPLICON PROTOCOL1 PRIMERS1
 ```
 
 ### Add a sequencing run for a library

@@ -77,11 +77,11 @@ def cli():
             help="add a sequencing library by providing fields via the CLI")
     lpg = library_parser.add_mutually_exclusive_group(required=True)
     lpg.add_argument("--biosamples", nargs='+')
-    lpg.add_argument("--biosample", action='append', nargs=4,
-            metavar=('central_sample_id', 'library_source', 'library_selection', 'library_strategy'))
+    lpg.add_argument("--biosample", action='append', nargs=6,
+            metavar=('central_sample_id', 'library_source', 'library_selection', 'library_strategy', 'library_protocol', 'library_primers'))
 
-    library_parser.add_argument("--apply-all-library", nargs=3,
-            metavar=('library_source', 'library_selection', 'library_strategy'))
+    library_parser.add_argument("--apply-all-library", nargs=5,
+            metavar=('library_source', 'library_selection', 'library_strategy', 'library_protocol', 'library_primers'))
     library_parser.add_argument("--library-layout-config", required=True)
     library_parser.add_argument("--library-name", required=True)
     library_parser.add_argument("--library-seq-kit", required=True)
@@ -485,6 +485,8 @@ def wrap_library_emit(args, config, metadata={}, metrics={}):
                 "library_source": args.apply_all_library[0],
                 "library_selection": args.apply_all_library[1],
                 "library_strategy": args.apply_all_library[2],
+                "library_protocol": args.apply_all_library[3],
+                "library_primers": args.apply_all_library[4],
             })
         del v_args["apply_all_library"]
         del v_args["biosamples"]
