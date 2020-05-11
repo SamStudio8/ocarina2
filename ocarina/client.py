@@ -1,5 +1,6 @@
 import os
 import sys
+import csv
 
 import json
 from . import util
@@ -198,6 +199,7 @@ def cli():
 
     get_pag_parser.add_argument("--ls-files", action="store_true")
     get_pag_parser.add_argument("--ofield", nargs=3, metavar=("field", "as", "default"), action="append")
+    get_pag_parser.add_argument("--ffield-true", nargs=1, metavar=("field",), action="append")
     get_pag_parser.set_defaults(func=wrap_get_qc)
 
 
@@ -331,7 +333,7 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
         j = util.emit(config, ENDPOINTS["api.pag.qc.get"], v_args, quiet=args.quiet)
 
     if args.ls_files:
-        if not hasattr(j, "get") or not hasattr(j["get"], "count"):
+        if "get" not in j or "count" not in j["get"]:
             sys.exit(2)
         if j["get"]["count"] >= 1:
             for pag in j["get"]["result"]:
@@ -346,14 +348,29 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
                             j["get"][pag]["status"],
                         ]) + '\n')
     elif args.ofield:
-        if not hasattr(j, "get") or not hasattr(j["get"], "count"):
+        csv_w = csv.DictWriter(sys.stdout, fieldnames=[f[1] for f in args.ofield], delimiter='\t')
+        skipped = 0
+        if "get" not in j or "count" not in j["get"]:
             sys.exit(2)
         if j["get"]["count"] >= 1:
             for pag in j["get"]["result"]:
                 # Flatten the PAG to unique distinguished objects
-                metadata = {k:v for k,v in j["get"]["result"][pag].items() if type(v) != dict and type(v) != list}
-                for artifact_g in j["get"]["result"][pag]["artifacts"]:
-                    for artifact in j["get"]["result"][pag]["artifacts"][artifact_g]:
+                pag = pag["pag"]
+                include = True
+                if args.ffield_true:
+                    for field in args.ffield_true:
+                        if field[0] in pag:
+                            if not pag[field[0]]:
+                                include = False
+                        else:
+                            pass
+                if not include:
+                    skipped += 1
+                    continue
+
+                metadata = {k:v for k,v in pag.items() if type(v) != dict and type(v) != list}
+                for artifact_g in pag["artifacts"]:
+                    for artifact in pag["artifacts"][artifact_g]:
                         for k, v in artifact.items():
                             if k not in metadata and type(v) != dict and type(v) != list:
                                 metadata[k] = v
@@ -375,10 +392,13 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
                         v = metadata[field]
                     else:
                         v = default
-                    print(as_, v)
+                    row[as_] = v
+                csv_w.writerow(row)
+                
 
     if args.task_del and j.get("task", {}).get("state", "") == "SUCCESS":
         j = util.emit(config, ENDPOINTS["api.majora.task.delete"], v_args, quiet=args.quiet)
+    sys.stderr.write("Skipped %d\n" % skipped)
 
 def wrap_get_sequencing(args, config, metadata={}, metrics={}):
     v_args = vars(args)
