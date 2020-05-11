@@ -200,6 +200,7 @@ def cli():
 
     get_pag_parser.add_argument("--ls-files", action="store_true")
     get_pag_parser.add_argument("--ofield", nargs=3, metavar=("field", "as", "default"), action="append")
+    get_pag_parser.add_argument("--odelimiter", default='\t')
     get_pag_parser.add_argument("--ffield-true", nargs=1, metavar=("field",), action="append")
     get_pag_parser.set_defaults(func=wrap_get_qc)
 
@@ -349,7 +350,8 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
                             j["get"][pag]["status"],
                         ]) + '\n')
     elif args.ofield:
-        csv_w = csv.DictWriter(sys.stdout, fieldnames=[f[1] for f in args.ofield], delimiter='\t')
+        csv_w = csv.DictWriter(sys.stdout, fieldnames=[f[1] for f in args.ofield], delimiter=args.odelimiter)
+        csv_w.writeheader()
         skipped = 0
         if "get" not in j or "count" not in j["get"]:
             sys.exit(2)
