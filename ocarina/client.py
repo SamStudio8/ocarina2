@@ -1,3 +1,4 @@
+import re
 import os
 import sys
 import csv
@@ -388,7 +389,12 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
                 row = {}
                 for ofield in args.ofield:
                     field, as_, default = ofield
-                    if field in metadata and metadata[field] is not None:
+                    if field[0] == '~':
+                        v = field[1:]
+                        for m in re.findall("{\w+}", field):
+                            if m[1:-1] in metadata:
+                                v = v.replace(m, metadata[m[1:-1]])
+                    elif field in metadata and metadata[field] is not None:
                         v = metadata[field]
                     else:
                         v = default
