@@ -333,7 +333,7 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
     if args.ls_files:
         if not hasattr(j, "get") or not hasattr(j["get"], "count"):
             sys.exit(2)
-        if len(j["get"]["count"]) >= 1:
+        if j["get"]["count"] >= 1:
             for pag in j["get"]["result"]:
                 if "Digital Resource" in j["get"]["result"][pag]["artifacts"]:
                     for dra in j["get"]["result"][pag]["artifacts"]["Digital Resource"]:
@@ -348,7 +348,7 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
     elif args.ofield:
         if not hasattr(j, "get") or not hasattr(j["get"], "count"):
             sys.exit(2)
-        if len(j["get"]["count"]) >= 1:
+        if j["get"]["count"] >= 1:
             for pag in j["get"]["result"]:
                 # Flatten the PAG to unique distinguished objects
                 metadata = {k:v for k,v in j["get"]["result"][pag].items() if type(v) != dict and type(v) != list}
