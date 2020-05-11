@@ -331,10 +331,12 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
         j = util.emit(config, ENDPOINTS["api.pag.qc.get"], v_args, quiet=args.quiet)
 
     if args.ls_files:
-        if len(j["get"]) >= 1:
-            for pag in j["get"]:
-                if "Digital Resource" in j["get"][pag]["artifacts"]:
-                    for dra in j["get"][pag]["artifacts"]["Digital Resource"]:
+        if not hasattr(j, "get") or not hasattr(j["get"], "count"):
+            sys.exit(2)
+        if len(j["get"]["count"]) >= 1:
+            for pag in j["get"]["result"]:
+                if "Digital Resource" in j["get"]["result"][pag]["artifacts"]:
+                    for dra in j["get"]["result"][pag]["artifacts"]["Digital Resource"]:
                         sys.stdout.write("\t".join([
                             pag,
                             dra["current_kind"],
@@ -344,12 +346,14 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
                             j["get"][pag]["status"],
                         ]) + '\n')
     elif args.ofield:
-        if len(j["get"]) >= 1:
-            for pag in j["get"]:
+        if not hasattr(j, "get") or not hasattr(j["get"], "count"):
+            sys.exit(2)
+        if len(j["get"]["count"]) >= 1:
+            for pag in j["get"]["result"]:
                 # Flatten the PAG to unique distinguished objects
-                metadata = {k:v for k,v in j["get"][pag].items() if type(v) != dict and type(v) != list}
-                for artifact_g in j["get"][pag]["artifacts"]:
-                    for artifact in j["get"][pag]["artifacts"][artifact_g]:
+                metadata = {k:v for k,v in j["get"]["result"][pag].items() if type(v) != dict and type(v) != list}
+                for artifact_g in j["get"]["result"][pag]["artifacts"]:
+                    for artifact in j["get"]["result"][pag]["artifacts"][artifact_g]:
                         for k, v in artifact.items():
                             if k not in metadata and type(v) != dict and type(v) != list:
                                 metadata[k] = v
