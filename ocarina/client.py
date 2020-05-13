@@ -8,6 +8,7 @@ from . import util
 from . import parsers
 
 import argparse
+import datetime
 
 ENDPOINTS = {
         "api.artifact.biosample.add": "/api/v2/artifact/biosample/add/",
@@ -197,6 +198,8 @@ def cli():
 
     get_pag_parser.add_argument("--public", action="store_true")
     get_pag_parser.add_argument("--private", action="store_true")
+
+    get_pag_parser.add_argument("--published-after", type=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').strftime('%Y-%m-%d'))
 
     get_pag_parser.add_argument("--ls-files", action="store_true")
     get_pag_parser.add_argument("--ofield", nargs=3, metavar=("field", "as", "default"), action="append")
@@ -405,11 +408,11 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
                         v = default
                     row[as_] = v
                 csv_w.writerow(row)
+        sys.stderr.write("Skipped %d\n" % skipped)
                 
 
     if args.task_del and j.get("task", {}).get("state", "") == "SUCCESS":
         j = util.emit(config, ENDPOINTS["api.majora.task.delete"], v_args, quiet=args.quiet)
-    sys.stderr.write("Skipped %d\n" % skipped)
 
 def wrap_get_sequencing(args, config, metadata={}, metrics={}):
     v_args = vars(args)
