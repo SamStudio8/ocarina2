@@ -191,11 +191,12 @@ def cli():
 
     get_pag_parser = get_subparsers.add_parser("pag", parents=[get_parser], add_help=False,
             help="Get all PAGs that have passed a QC test")
-    get_pag_parser.add_argument("--test-name", required=True)
 
+    get_pag_parser.add_argument("--test-name", required=True)
     get_pag_parser.add_argument("--pass", action="store_true")
     get_pag_parser.add_argument("--fail", action="store_true")
 
+    get_pag_parser.add_argument("--service-name")
     get_pag_parser.add_argument("--public", action="store_true")
     get_pag_parser.add_argument("--private", action="store_true")
 
