@@ -418,16 +418,25 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
 def wrap_get_sequencing(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
-    j = util.emit(config, ENDPOINTS["api.process.sequencing.get"], v_args, quiet=args.quiet)
 
-    if v_args["tsv"]:
+    if args.task_id:
+        j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=args.quiet)
+        #TODO move this to part of emit
+        if j.get("task", {}).get("state", "") != "SUCCESS":
+            return
+    else:
+        j = util.emit(config, ENDPOINTS["api.process.sequencing.get"], v_args, quiet=args.quiet)
+
+    if "get" not in j or "count" not in j["get"]:
+        sys.exit(2)
+    if j["get"]["count"] >= 1 and v_args["tsv"]:
         i = 0
         header = None
 
-        if len(j["get"]) >= 1:
+        if len(j["get"]["result"]) >= 1:
             all_possible_meta_keys = set([])
-            for run in j["get"]:
-                for l in j["get"][run]["libraries"]:
+            for run in j["get"]["result"]:
+                for l in j["get"]["result"][run]["libraries"]:
                     if l["metadata"]:
                         flat_meta = {}
                         for tag in l["metadata"]:
@@ -440,8 +449,8 @@ def wrap_get_sequencing(args, config, metadata={}, metrics={}):
                     except:
                         pass
 
-            for run in j["get"]:
-                row_master = j["get"][run]
+            for run in j["get"]["result"]:
+                row_master = j["get"]["result"][run]
                 libraries = row_master.get("libraries")
                 del row_master["libraries"]
 
