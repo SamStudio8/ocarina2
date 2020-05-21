@@ -342,6 +342,24 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
     else:
         j = util.emit(config, ENDPOINTS["api.pag.qc.get"], v_args, quiet=args.quiet)
 
+    #TODO sam why
+    if args.task_wait:
+        if not v_args["task_id"]:
+            try:
+                task_id = j.get("tasks", [None])[0]
+            except:
+                sys.exit(2)
+            v_args["task_id"] = task_id
+        state = "PENDING"
+        attempt = 0
+        while state == "PENDING" and attempt < args.task_wait_attempts:
+            attempt += 1
+            sys.stderr.write("[WAIT] Giving Majora a minute to finish task %s (%d)...\n" % (v_args["task_id"], attempt))
+            time.sleep(60 * args.task_wait_minutes)
+            j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=True)
+            state = j.get("task", {}).get("state", "UNKNOWN")
+        sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
+
     if args.ls_files:
         if "get" not in j or "count" not in j["get"]:
             sys.exit(2)
@@ -356,7 +374,7 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
                             dra["current_kind"],
                             dra["current_path"],
                             dra.get("current_hash", "0"),
-                            dra.get("current_size", "0"),
+                            str(dra.get("current_size", 0)),
                             "PASS" if pag_is_pass else "FAIL",
                         ]) + '\n')
     elif args.ofield:
