@@ -173,6 +173,8 @@ def cli():
 
 
     get_parser = action_parser.add_parser("get")
+    get_parser.add_argument("--task-wait-attempts", help="Number of attempts to query a task from the task endpoint [10]", type=int, default=10)
+    get_parser.add_argument("--task-wait-minutes", help="Number of minutes to wait between task fetching attempts [1]", type=int, default=1)
     get_parser.add_argument("--task-wait", help="Patiently wait for the result from the Majora task endpoint", action="store_true")
     get_parser.add_argument("--task-id", help="Request the result from the Majora task endpoint")
     get_parser.add_argument("--task-del", help="Destroy the task result if this command finishes successfully", action="store_true")
@@ -441,10 +443,10 @@ def wrap_get_sequencing(args, config, metadata={}, metrics={}):
             v_args["task_id"] = task_id
         state = "PENDING"
         attempt = 0
-        while state == "PENDING" and attempt < 10:
+        while state == "PENDING" and attempt < args.task_wait_attempts:
             attempt += 1
             sys.stderr.write("[WAIT] Giving Majora a minute to finish task %s (%d)...\n" % (v_args["task_id"], attempt))
-            time.sleep(60)
+            time.sleep(60 * args.task_wait_minutes)
             j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=True)
             state = j.get("task", {}).get("state", "UNKNOWN")
         sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
