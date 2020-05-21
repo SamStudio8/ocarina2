@@ -343,15 +343,17 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
             sys.exit(2)
         if j["get"]["count"] >= 1:
             for pag in j["get"]["result"]:
-                if "Digital Resource" in j["get"]["result"][pag]["artifacts"]:
-                    for dra in j["get"]["result"][pag]["artifacts"]["Digital Resource"]:
+                pag_is_pass = pag["is_pass"]
+                pag = pag["pag"]
+                if "Digital Resource" in pag["artifacts"]:
+                    for dra in pag["artifacts"]["Digital Resource"]:
                         sys.stdout.write("\t".join([
-                            pag,
+                            pag["published_name"],
                             dra["current_kind"],
                             dra["current_path"],
-                            dra["current_hash"],
-                            str(dra["current_size"]),
-                            j["get"][pag]["status"],
+                            dra.get("current_hash", "0"),
+                            dra.get("current_size", "0"),
+                            "PASS" if pag_is_pass else "FAIL",
                         ]) + '\n')
     elif args.ofield:
         csv_w = csv.DictWriter(sys.stdout, fieldnames=[f[1] for f in args.ofield], delimiter=args.odelimiter)
