@@ -65,7 +65,7 @@ def emit(config, endpoint, payload, quiet=False, sudo_as=None):
         sys.stderr.write(json.dumps(payload, indent=4, sort_keys=True))
         sys.stderr.write("\nResponse" + "="*(80-len("Request ")) + '\n')
         sys.stderr.write("STATUS CODE %d\n" % r.status_code)
-        sys.stderr.write(r.text)
+        sys.stderr.write(r.text + '\n')
         sys.exit(2)
 
     if not quiet:
@@ -74,7 +74,7 @@ def emit(config, endpoint, payload, quiet=False, sudo_as=None):
         sys.stderr.write(json.dumps(payload, indent=4, sort_keys=True))
 
         sys.stderr.write("\nResponse" + "="*(80-len("Request ")) + '\n')
-        sys.stderr.write(json.dumps(r.json(), indent=4, sort_keys=True))
+        sys.stderr.write(json.dumps(r.json(), indent=4, sort_keys=True) + '\n')
 
     try:
         ret_json = r.json()

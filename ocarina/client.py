@@ -4,6 +4,7 @@ import sys
 import csv
 
 import json
+import time
 from . import util
 from . import parsers
 
@@ -172,6 +173,7 @@ def cli():
 
 
     get_parser = action_parser.add_parser("get")
+    get_parser.add_argument("--task-wait", help="Patiently wait for the result from the Majora task endpoint", action="store_true")
     get_parser.add_argument("--task-id", help="Request the result from the Majora task endpoint")
     get_parser.add_argument("--task-del", help="Destroy the task result if this command finishes successfully", action="store_true")
     get_subparsers = get_parser.add_subparsers(title="actions")
@@ -429,8 +431,28 @@ def wrap_get_sequencing(args, config, metadata={}, metrics={}):
     else:
         j = util.emit(config, ENDPOINTS["api.process.sequencing.get"], v_args, quiet=args.quiet)
 
+    #TODO sam why
+    if args.task_wait:
+        if not v_args["task_id"]:
+            try:
+                task_id = j.get("tasks", [None])[0]
+            except:
+                sys.exit(2)
+            v_args["task_id"] = task_id
+        state = "PENDING"
+        attempt = 0
+        while state == "PENDING" and attempt < 10:
+            attempt += 1
+            sys.stderr.write("[WAIT] Giving Majora a minute to finish task %s (%d)...\n" % (v_args["task_id"], attempt))
+            time.sleep(60)
+            j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=True)
+            state = j.get("task", {}).get("state", "UNKNOWN")
+        sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
+
     if "get" not in j or "count" not in j["get"]:
         sys.exit(2)
+    elif j["get"]["count"] == 0:
+        sys.exit(3)
     if j["get"]["count"] >= 1 and v_args["tsv"]:
         i = 0
         header = None
@@ -446,6 +468,18 @@ def wrap_get_sequencing(args, config, metadata={}, metrics={}):
                                 flat_meta["meta.%s.%s" % (tag, name)] = l["metadata"][tag][name]
                                 all_possible_meta_keys.add("meta.%s.%s" % (tag, name))
                         l.update(flat_meta)
+                    for b in l["biosamples"]:
+                        if b["metadata"]:
+                            flat_meta = {}
+                            for tag in b["metadata"]:
+                                for name in b["metadata"][tag]:
+                                    flat_meta["meta.%s.%s" % (tag, name)] = b["metadata"][tag][name]
+                                    all_possible_meta_keys.add("meta.%s.%s" % (tag, name))
+                            b.update(flat_meta)
+                        try:
+                            del b["metadata"]
+                        except:
+                            pass
                     try:
                         del l["metadata"]
                     except:
