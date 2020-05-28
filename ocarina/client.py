@@ -501,6 +501,18 @@ def wrap_get_sequencing(args, config, metadata={}, metrics={}):
                             del b["metadata"]
                         except:
                             pass
+
+                        if b["metrics"]:
+                            flat_meta = {}
+                            for tag in b["metrics"]:
+                                for name in b["metrics"][tag]:
+                                    flat_meta["metric.%s.%s" % (tag, name)] = b["metrics"][tag][name]
+                                    all_possible_meta_keys.add("metric.%s.%s" % (tag, name))
+                            b.update(flat_meta)
+                        try:
+                            del b["metrics"]
+                        except:
+                            pass
                     try:
                         del l["metadata"]
                     except:
