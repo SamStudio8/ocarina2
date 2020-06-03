@@ -419,6 +419,14 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
                                         metadata[mkey] = mvalue
                                     else:
                                         del metadata[mkey]
+                        if "metrics" in artifact:
+                            for namespace in artifact["metrics"]:
+                                for mkey, mvalue in artifact["metrics"][namespace].items():
+                                    mkey = "metric.%s.%s" % (namespace, mkey)
+                                    if mkey not in metadata:
+                                        metadata[mkey] = mvalue
+                                    else:
+                                        del metadata[mkey]
 
                 row = {}
                 for ofield in args.ofield:
