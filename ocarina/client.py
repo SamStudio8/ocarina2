@@ -401,6 +401,14 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
                     continue
 
                 metadata = {k:v for k,v in pag.items() if type(v) != dict and type(v) != list}
+                if "accessions" in pag:
+                    for service in pag["accessions"]:
+                        for mkey, mvalue in pag["accessions"][service].items():
+                            if mkey == "service":
+                                continue
+                            mkey = "accession.%s.%s" % (service.lower(), mkey)
+                            metadata[mkey] = mvalue
+
                 for artifact_g in pag["artifacts"]:
                     for artifact in pag["artifacts"][artifact_g]:
                         current_kind = artifact.get("current_kind", "") # TODO euch
