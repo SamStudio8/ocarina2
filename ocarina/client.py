@@ -429,6 +429,8 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
                             elif k == "metrics":
                                 for namespace in artifact["metrics"]:
                                     for mkey, mvalue in artifact["metrics"][namespace].items():
+                                        if mkey == "records":
+                                            pass
                                         mkey = "metric.%s.%s" % (namespace, mkey)
                                         if mkey not in metadata:
                                             metadata[mkey] = mvalue
@@ -529,8 +531,14 @@ def wrap_get_sequencing(args, config, metadata={}, metrics={}):
                             flat_meta = {}
                             for tag in b["metrics"]:
                                 for name in b["metrics"][tag]:
-                                    flat_meta["metric.%s.%s" % (tag, name)] = b["metrics"][tag][name]
-                                    all_possible_meta_keys.add("metric.%s.%s" % (tag, name))
+                                    if name == "records":
+                                        for record_i, record in enumerate(b["metrics"][tag][name]):
+                                            for sub_name, sub_value in record.items():
+                                                flat_meta["metric.%s.%d.%s" % (tag, record_i+1, sub_name)] = sub_value
+                                                all_possible_meta_keys.add("metric.%s.%d.%s" % (tag, record_i+1, sub_name))
+                                    else:
+                                        flat_meta["metric.%s.%s" % (tag, name)] = b["metrics"][tag][name]
+                                        all_possible_meta_keys.add("metric.%s.%s" % (tag, name))
                             b.update(flat_meta)
                         try:
                             del b["metrics"]
