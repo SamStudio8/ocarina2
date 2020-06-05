@@ -417,22 +417,31 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
                                 metadata[k] = v
                             elif k in metadata:
                                 del metadata[k] # unique stuff only for now
-                        if "metadata" in artifact:
-                            for namespace in artifact["metadata"]:
-                                for mkey, mvalue in artifact["metadata"][namespace].items():
-                                    mkey = "%s.%s" % (namespace, mkey)
+
+                            if k == "metadata":
+                                for namespace in artifact["metadata"]:
+                                    for mkey, mvalue in artifact["metadata"][namespace].items():
+                                        mkey = "%s.%s" % (namespace, mkey)
+                                        if mkey not in metadata:
+                                            metadata[mkey] = mvalue
+                                        else:
+                                            del metadata[mkey]
+                            elif k == "metrics":
+                                for namespace in artifact["metrics"]:
+                                    for mkey, mvalue in artifact["metrics"][namespace].items():
+                                        mkey = "metric.%s.%s" % (namespace, mkey)
+                                        if mkey not in metadata:
+                                            metadata[mkey] = mvalue
+                                        else:
+                                            del metadata[mkey]
+                            elif k.startswith("supplement_"):
+                                for mkey, mvalue in artifact[k].items():
+                                    mkey = "supplement.%s.%s" % (k.split('_')[1], mkey)
                                     if mkey not in metadata:
                                         metadata[mkey] = mvalue
                                     else:
                                         del metadata[mkey]
-                        if "metrics" in artifact:
-                            for namespace in artifact["metrics"]:
-                                for mkey, mvalue in artifact["metrics"][namespace].items():
-                                    mkey = "metric.%s.%s" % (namespace, mkey)
-                                    if mkey not in metadata:
-                                        metadata[mkey] = mvalue
-                                    else:
-                                        del metadata[mkey]
+
 
                 row = {}
                 for ofield in args.ofield:
