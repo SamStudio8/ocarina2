@@ -23,6 +23,12 @@ X8%%S:              .8 8S888    :8.88S@:
 # ocarina
 Ocarina is a simple Python requests program for shouting at the [Majora](https://github.com/SamStudio8/majora) API.
 
+## Install
+
+```
+pip install git+https://github.com/samstudio8/ocarina.git
+```
+
 ## Configuration
 On first run, `ocarina` will give you a command to generate the config file.
 Edit the configuration and supply the three required parameters:
