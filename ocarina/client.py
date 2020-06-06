@@ -411,12 +411,6 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
                     for artifact in pag["artifacts"][artifact_g]:
                         current_kind = artifact.get("current_kind", "") # TODO euch
                         for k, v in artifact.items():
-                            if current_kind:
-                                k = "%s.%s" % (current_kind, k)
-                            if k not in metadata and type(v) != dict and type(v) != list:
-                                metadata[k] = v
-                            elif k in metadata:
-                                del metadata[k] # unique stuff only for now
 
                             if k == "metadata":
                                 for namespace in artifact["metadata"]:
@@ -443,6 +437,13 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
                                         metadata[mkey] = mvalue
                                     else:
                                         del metadata[mkey]
+                            else:
+                                if current_kind:
+                                    k = "%s.%s" % (current_kind, k)
+                                if k not in metadata and type(v) != dict and type(v) != list:
+                                    metadata[k] = v
+                                elif k in metadata:
+                                    del metadata[k] # unique stuff only for now
 
 
                 row = {}
