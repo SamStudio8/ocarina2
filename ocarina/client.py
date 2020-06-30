@@ -307,10 +307,11 @@ def wrap_get_summary(args, config, metadata={}, metrics={}):
 
     if args.md:
         if len(j["get"]["site_qc"]) >= 1:
-            print("| Site | Count | Pass | Fail |")
-            print("|------|------:|-----:|-----:|")
+            print("| Sample Site | Seq Site | Count | Pass | Pass% | Fail | Fail% |")
+            print("|------------:|---------:|------:|-----:|-------:|-----:|-------:|")
             for group in j["get"]["site_qc"]:
-                print("| %s | %d | %d (%.2f%%) | %d (%.2f%%) |" % (
+                print("| %s | %s | %d | %d | %.2f | %d | %.2f" % (
+                    group["sourcesite"] if group["sourcesite"] != group["site"] else "-",
                     group["site"],
                     group["count"],
                     group["pass_count"],
