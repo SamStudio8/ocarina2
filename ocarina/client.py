@@ -225,6 +225,7 @@ def cli():
     get_osummary_parser = get_subparsers.add_parser("outbound-summary", parents=[get_parser], add_help=False,
             help="Get outbound summary metrics")
     get_osummary_parser.add_argument("--service", required=True)
+    get_osummary_parser.add_argument("--user", required=False)
     get_osummary_parser.add_argument("--gte-date", required=True)
     get_osummary_parser.add_argument("--md", action="store_true")
     get_osummary_parser.add_argument("--md-from-wave", type=int, default=1)
