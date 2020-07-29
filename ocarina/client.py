@@ -323,6 +323,7 @@ def wrap_get_outbound_summary(args, config, metadata={}, metrics={}):
             print("|:-----|:-----|------:|----------:|---------:|---------:|--------------------:|")
             for i, interval in enumerate(j["get"]["intervals"]):
                 mod = '~' if not interval["whole"] else ''
+                cumsum += int(interval["released"])
                 print ("| %s | %s | %d | %d | %d | %d | %d" % (
                     "%s%d" % (mod, args.md_from_wave + i),
                     interval["dt"],
@@ -332,7 +333,6 @@ def wrap_get_outbound_summary(args, config, metadata={}, metrics={}):
                     interval["released"],
                     cumsum,
                 ))
-                cumsum += int(interval["released"])
 
 
 def wrap_get_summary(args, config, metadata={}, metrics={}):
