@@ -7,6 +7,7 @@ import json
 import time
 from . import util
 from . import parsers
+from .version import __version__
 
 import argparse
 import datetime
@@ -40,6 +41,7 @@ def cli():
     parser.add_argument("-q", "--quiet", help="suppress the large welcoming ocarina", action="store_true")
     parser.add_argument("--env", help="use env vars instead of ~/.ocarina", action="store_true")
     parser.add_argument("--angry", help="exit if API returns errors > 0", action="store_true", default=False)
+    parser.add_argument("-v", "--version", action='version', version="ocarina v%s" %  __version__)
 
     action_parser = parser.add_subparsers()
     put_parser = action_parser.add_parser("put")
