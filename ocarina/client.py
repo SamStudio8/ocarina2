@@ -29,6 +29,7 @@ ENDPOINTS = {
         "api.process.sequencing.get": "/api/v2/process/sequencing/get/",
 
         "api.majora.summary.get": "/api/v2/majora/summary/get/",
+        "api.outbound.summary.get": "/api/v2/outbound/summary/get/",
         "api.majora.task.get": "/api/v2/majora/task/get/",
 
         "api.majora.task.delete": "/api/v2/majora/task/delete/",
@@ -221,6 +222,13 @@ def cli():
     get_summary_parser.add_argument("--md", action="store_true")
     get_summary_parser.set_defaults(func=wrap_get_summary)
 
+    get_osummary_parser = get_subparsers.add_parser("outbound-summary", parents=[get_parser], add_help=False,
+            help="Get outbound summary metrics")
+    get_osummary_parser.add_argument("--service", required=True)
+    get_osummary_parser.add_argument("--gte-date", required=True)
+    get_osummary_parser.add_argument("--md", action="store_true")
+    get_osummary_parser.add_argument("--md-from-wave", type=int, default=1)
+    get_osummary_parser.set_defaults(func=wrap_get_outbound_summary)
 
     del_parser = action_parser.add_parser("del")
     del_subparsers = del_parser.add_subparsers(title="actions")
@@ -302,6 +310,30 @@ def wrap_get_biosample(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
     util.emit(config, ENDPOINTS["api.artifact.biosample.get"], v_args, quiet=args.quiet)
+
+def wrap_get_outbound_summary(args, config, metadata={}, metrics={}):
+    v_args = vars(args)
+    del v_args["func"]
+    j = util.emit(config, ENDPOINTS["api.outbound.summary.get"], v_args, quiet=args.quiet)
+
+    if args.md:
+        cumsum = 0
+        if len(j["get"]["intervals"]) >= 1:
+            print("| Wave | Date | Sites | Submitted | Rejected | Released | Cumulative released |")
+            print("|:-----|:-----|------:|----------:|---------:|---------:|--------------------:|")
+            for i, interval in enumerate(j["get"]["intervals"]):
+                mod = '~' if not interval["whole"] else ''
+                print ("| %s | %s | %d | %d | %d | %d | %d" % (
+                    "%s%d" % (mod, args.md_from_wave + i),
+                    interval["dt"],
+                    0,
+                    interval["submitted"],
+                    interval["rejected"],
+                    interval["released"],
+                    cumsum,
+                ))
+                cumsum += int(interval["released"])
+
 
 def wrap_get_summary(args, config, metadata={}, metrics={}):
     v_args = vars(args)
