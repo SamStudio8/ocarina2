@@ -164,10 +164,11 @@ def cli():
     publish_parser.add_argument("--publish-group", required=True)
     publish_parser.add_argument("--contains", action="store_true")
     publish_parser.add_argument("--service", required=True)
-    publish_parser.add_argument("--accession", required=True)
+    publish_parser.add_argument("--accession", required=False)
     publish_parser.add_argument("--accession2", required=False)
     publish_parser.add_argument("--accession3", required=False)
     publish_parser.add_argument("--public", action="store_true")
+    #publish_parser.add_argument("--rejected-reason", required=False)
     publish_parser.set_defaults(func=wrap_publish_emit)
 
 
@@ -742,6 +743,9 @@ def wrap_publish_emit(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
     v_args["metadata"] = metadata
+    #v_args["rejected"] = False
+    #if v_args["rejected_reason"]:
+    #    v_args["rejected"] = True
     j = util.emit(config, ENDPOINTS["api.pag.accession.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
     if j["errors"] == 0:
         print(0, args.publish_group, j["updated"][0][2])
