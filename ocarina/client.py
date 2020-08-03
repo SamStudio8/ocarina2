@@ -230,6 +230,7 @@ def cli():
     get_osummary_parser.add_argument("--gte-date", required=True)
     get_osummary_parser.add_argument("--md", action="store_true")
     get_osummary_parser.add_argument("--md-from-wave", type=int, default=1)
+    get_osummary_parser.add_argument("--md-skip-zero", action="store_true")
     get_osummary_parser.set_defaults(func=wrap_get_outbound_summary)
 
     del_parser = action_parser.add_parser("del")
@@ -323,11 +324,21 @@ def wrap_get_outbound_summary(args, config, metadata={}, metrics={}):
         if len(j["get"]["intervals"]) >= 1:
             print("| Wave | Date | Sites | Submitted | Rejected | Released | Cumulative released |")
             print("|:-----|:-----|------:|----------:|---------:|---------:|--------------------:|")
+            non_zero_i = 0
             for i, interval in enumerate(j["get"]["intervals"]):
                 mod = '~' if not interval["whole"] else ''
                 cumsum += int(interval["released"])
+
+                c = i
+                if args.md_skip_zero:
+                    c = non_zero_i
+                    if int(interval["released"]) == 0 and int(interval["submitted"]) == 0:
+                        continue
+                    else:
+                        non_zero_i += 1
+
                 print ("| %s | %s | %d | %d | %d | %d | %d" % (
-                    "%s%d" % (mod, args.md_from_wave + i),
+                    "%s%d" % (mod, args.md_from_wave + c),
                     interval["dt"],
                     0,
                     interval["submitted"],
