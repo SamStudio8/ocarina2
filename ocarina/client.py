@@ -455,6 +455,9 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
                                 continue
                             mkey = "accession.%s.%s" % (service.lower(), mkey)
                             metadata[mkey] = mvalue
+                if "qc_reports" in pag:
+                    for report in pag["qc_reports"]:
+                        metadata["qc.%s" % report["test_name"]] = True if report["is_pass"]=="True" else False
 
                 for artifact_g in pag["artifacts"]:
                     for artifact in pag["artifacts"][artifact_g]:
@@ -473,8 +476,13 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
                                 for namespace in artifact["metrics"]:
                                     for mkey, mvalue in artifact["metrics"][namespace].items():
                                         if mkey == "records":
-                                            pass
-                                        mkey = "metric.%s.%s" % (namespace, mkey)
+                                            for record_i, record in enumerate(mvalue):
+                                                for sub_name, sub_value in record.items():
+                                                    skey = "metric.%s.%d.%s" % (namespace, record_i+1, sub_name)
+                                                    metadata[skey] = sub_value
+                                        else:
+                                            mkey = "metric.%s.%s" % (namespace, mkey)
+
                                         if mkey not in metadata:
                                             metadata[mkey] = mvalue
                                         else:
@@ -503,6 +511,10 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
                         for m in re.findall("{\w+}", field):
                             if m[1:-1] in metadata:
                                 v = v.replace(m, metadata[m[1:-1]])
+                    #elif fields[0] == ':'
+                    #    v = field[1:]
+                    #    for vs in [re.findall(v, k) for k in metadata]:
+                    #        pass
                     elif field in metadata and metadata[field] is not None:
                         v = metadata[field]
                     else:
