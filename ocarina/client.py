@@ -33,6 +33,8 @@ ENDPOINTS = {
         "api.majora.task.get": "/api/v2/majora/task/get/",
 
         "api.majora.task.delete": "/api/v2/majora/task/delete/",
+
+        "api.group.mag.get": "/api/v2/group/mag/get/",
 }
 
 
@@ -174,6 +176,12 @@ def cli():
     publish_parser.add_argument("--submitted", action="store_true")
     #publish_parser.add_argument("--rejected-reason", required=False)
     publish_parser.set_defaults(func=wrap_publish_emit)
+
+
+    list_parser = action_parser.add_parser("list")
+    list_parser.add_argument("path", help="node://absolute/path/to/artifact/or/group")
+    list_parser.add_argument("--sep", default="/", required=False)
+    list_parser.set_defaults(func=wrap_list_mag)
 
 
     get_parser = action_parser.add_parser("get")
@@ -797,6 +805,26 @@ def wrap_qc_emit(args, config, metadata={}, metrics={}):
     del v_args["func"]
     del v_args["metadata"]
     util.emit(config, ENDPOINTS["api.meta.qc.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
+
+def wrap_list_mag(args, config, metadata={}, metrics={}):
+    v_args = vars(args)
+    del v_args["func"]
+    j = util.emit(config, ENDPOINTS["api.group.mag.get"], v_args, quiet=True, sudo_as=None)
+
+    if j["mag"]:
+        print("* %s" % v_args["path"])
+        for g in j["mag"]["children"]:
+            al = g[2]
+            print('g- ' + "\t".join(g[:2]))
+            for a in al:
+                print('\t-a ' + "\t".join(a))
+
+        for l in j["mag"]["links"]:
+            al = l[2]
+            print('l- ' + "\t".join(l[:2]))
+            for a in al:
+                print('\t-a ' + "\t".join(a))
+
 
 def wrap_publish_emit(args, config, metadata={}, metrics={}):
     v_args = vars(args)
