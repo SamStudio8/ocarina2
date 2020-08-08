@@ -820,7 +820,7 @@ def wrap_list_mag(args, config, metadata={}, metrics={}):
         print(Fore.YELLOW + "%s\n" % v_args["path"] + Style.RESET_ALL)
 
         table = []
-        for g_tc, g_t in [("g", "children"), ("l", "links")]:
+        for g_tc, g_t in [("gc", "children"), ("gl", "links")]:
             for g in j["mag"][g_t]:
                 row = []
                 row.append(Fore.BLUE + '%s-' % g_tc + Style.RESET_ALL)
@@ -832,7 +832,7 @@ def wrap_list_mag(args, config, metadata={}, metrics={}):
                 table.append(row)
                 for a in g[3]:
                     row = []
-                    row.append(Fore.WHITE + '%sa' % g_tc + Style.RESET_ALL)
+                    row.append(Fore.WHITE + '-%sa' % g_tc[1] + Style.RESET_ALL)
                     row.append(a[2])
                     row.append(a[3])
                     row.append(a[1])
