@@ -812,18 +812,43 @@ def wrap_list_mag(args, config, metadata={}, metrics={}):
     j = util.emit(config, ENDPOINTS["api.group.mag.get"], v_args, quiet=True, sudo_as=None)
 
     if j["mag"]:
-        print("* %s" % v_args["path"])
-        for g in j["mag"]["children"]:
-            al = g[2]
-            print('g- ' + "\t".join(g[:2]))
-            for a in al:
-                print('\t-a ' + "\t".join(a))
+        from tabulate import tabulate
+        from colorama import init
+        init()
 
-        for l in j["mag"]["links"]:
-            al = l[2]
-            print('l- ' + "\t".join(l[:2]))
-            for a in al:
-                print('\t-a ' + "\t".join(a))
+        from colorama import Fore, Back, Style
+        print(Fore.YELLOW + "%s\n" % v_args["path"] + Style.RESET_ALL)
+
+        table = []
+        for g_tc, g_t in [("g", "children"), ("l", "links")]:
+            for g in j["mag"][g_t]:
+                row = []
+                row.append(Fore.BLUE + '%s-' % g_tc + Style.RESET_ALL)
+                row.append(Fore.BLUE + g[2] + Style.RESET_ALL)
+                row.append(None)
+                row.append(g[1])
+                row.append(g[2])
+                row.append(g[0])
+                table.append(row)
+                for a in g[3]:
+                    row = []
+                    row.append(Fore.WHITE + '%sa' % g_tc + Style.RESET_ALL)
+                    row.append(a[2])
+                    row.append(a[3])
+                    row.append(a[1])
+                    row.append(g[2])
+                    row.append(a[0])
+                    table.append(row)
+                row = [None]*6
+                table.append(row)
+        print(tabulate(table, tablefmt='simple', headers=[
+            "",
+            "ANAME",
+            "APATH",
+            "ATYPE",
+            "GROUP",
+            "MAJORA UUID",
+        ]))
 
 
 def wrap_publish_emit(args, config, metadata={}, metrics={}):

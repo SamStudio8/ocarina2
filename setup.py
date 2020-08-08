@@ -6,6 +6,8 @@ from ocarina import version
 
 requirements = [
     "requests",
+    "colorama",
+    "tabulate",
 ]
 
 test_requirements = [
