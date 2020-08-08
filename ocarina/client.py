@@ -812,8 +812,9 @@ def wrap_list_mag(args, config, metadata={}, metrics={}):
     del v_args["func"]
     j = util.emit(config, ENDPOINTS["api.group.mag.get"], v_args, quiet=True, sudo_as=None)
 
-    if j.get("error_code") == "BIGMAG":
-        print("MAG contains more than 100 groups or artifacts, if you are sure you want to list it use --force.")
+    ec = j.get("error_code", "")
+    if ec.startswith("BIGMAG"):
+        print("MAG contains %s groups or artifacts, if you are sure you want to list it use --force." % ec.split(':'))
         return
 
     if j["mag"]:
