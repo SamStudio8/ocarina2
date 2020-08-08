@@ -181,6 +181,7 @@ def cli():
     list_parser = action_parser.add_parser("list")
     list_parser.add_argument("path", help="node://absolute/path/to/artifact/or/group")
     list_parser.add_argument("--sep", default="/", required=False)
+    list_parser.add_argument("--force", "-F", action="store_true")
     list_parser.set_defaults(func=wrap_list_mag)
 
 
@@ -810,6 +811,10 @@ def wrap_list_mag(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
     j = util.emit(config, ENDPOINTS["api.group.mag.get"], v_args, quiet=True, sudo_as=None)
+
+    if j.get("error_code") == "BIGMAG":
+        print("MAG contains more than 100 groups or artifacts, if you are sure you want to list it use --force.")
+        return
 
     if j["mag"]:
         from tabulate import tabulate
