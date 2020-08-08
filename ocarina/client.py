@@ -817,30 +817,96 @@ def wrap_list_mag(args, config, metadata={}, metrics={}):
         init()
 
         from colorama import Fore, Back, Style
-        print(Fore.YELLOW + "%s\n" % v_args["path"] + Style.RESET_ALL)
 
         table = []
-        for g_tc, g_t in [("gc", "children"), ("gl", "links")]:
+        row = []
+        row.append(Fore.YELLOW + '...' + Style.RESET_ALL)
+        if j["mag"]["root"]:
+            row.append(Fore.YELLOW + j["mag"]["root"]["name"] + Style.RESET_ALL)
+            row.append(None)
+            row.append(j["mag"]["root"]["kind"])
+            row.append(j["mag"]["root"]["path"])
+            row.append(Fore.YELLOW + j["mag"]["root"]["id"] + Style.RESET_ALL)
+        else:
+            row.append(None)
+            row.append(None)
+            row.append(None)
+            row.append(None)
+            row.append(None)
+        table.append(row)
+
+        row = []
+        row.append(Fore.YELLOW + '.. ' + Style.RESET_ALL)
+        if j["mag"]["parent"]:
+            row.append(Fore.YELLOW + j["mag"]["parent"]["name"] + Style.RESET_ALL)
+            row.append(None)
+            row.append(j["mag"]["parent"]["kind"])
+            row.append(j["mag"]["parent"]["path"])
+            row.append(Fore.YELLOW + j["mag"]["parent"]["id"] + Style.RESET_ALL)
+        else:
+            row.append(None)
+            row.append(None)
+            row.append(None)
+            row.append(None)
+            row.append(None)
+        table.append(row)
+
+        row = []
+        row.append(Fore.YELLOW + '.  ' + Style.RESET_ALL)
+        row.append(Fore.YELLOW + j["mag"]["name"] + Style.RESET_ALL)
+        row.append(None)
+        row.append(j["mag"]["group_kind"])
+        row.append(j["mag"]["group_path"])
+        row.append(Fore.YELLOW + j["mag"]["id"] + Style.RESET_ALL)
+        table.append(row)
+
+        row = []
+        row.append(None)
+        row.append(None)
+        row.append(None)
+        row.append(None)
+        row.append(None)
+        row.append(None)
+        table.append(row)
+
+        for g_tc, g_t in [("gc", "children"), ("gl", "hlinks"), ("sl", "slinks")]:
             for g in j["mag"][g_t]:
                 row = []
-                row.append(Fore.BLUE + '%s-' % g_tc + Style.RESET_ALL)
-                row.append(Fore.BLUE + g[2] + Style.RESET_ALL)
-                row.append(None)
-                row.append(g[1])
-                row.append(g[2])
-                row.append(g[0])
-                table.append(row)
-                for a in g[3]:
-                    row = []
-                    row.append(Fore.WHITE + '-%sa' % g_tc[1] + Style.RESET_ALL)
-                    row.append(a[2])
-                    row.append(a[3])
-                    row.append(a[1])
-                    row.append(g[2])
-                    row.append(a[0])
+                if g_tc == "sl":
+                    if g[0]:
+                        row.append(Fore.CYAN + '%s-' % g_tc + Style.RESET_ALL)
+                        row.append(Fore.CYAN + g[2] + Style.RESET_ALL)
+                        row.append(g[3])
+                        row.append(g[1])
+                        row.append(j["mag"]["group_path"])
+                        row.append(Fore.CYAN + g[0] + Style.RESET_ALL)
+                    else:
+                        row.append(Fore.RED + Back.BLACK + '%s-' % g_tc + Style.RESET_ALL)
+                        row.append(Fore.RED + Back.BLACK + g[2] + Style.RESET_ALL)
+                        row.append(None)
+                        row.append(None)
+                        row.append(j["mag"]["group_path"])
+                        row.append(Fore.RED + Back.BLACK + j["mag"]["id"] + Style.RESET_ALL)
                     table.append(row)
-                row = [None]*6
-                table.append(row)
+                else:
+                    row.append(Fore.BLUE + '%s-' % g_tc + Style.RESET_ALL)
+                    row.append(Fore.BLUE + g[2] + Style.RESET_ALL)
+                    row.append(None)
+                    row.append(g[1])
+                    row.append(g[2])
+                    row.append(Fore.BLUE + g[0] + Style.RESET_ALL)
+                    table.append(row)
+                    for a in g[4]:
+                        row = []
+                        row.append(Fore.WHITE + '-%sa' % g_tc[1] + Style.RESET_ALL)
+                        row.append(a[2])
+                        row.append(a[3])
+                        row.append(a[1])
+                        row.append(g[2])
+                        row.append(a[0])
+                        table.append(row)
+                    row = [None]*6
+                    table.append(row)
         print(tabulate(table, tablefmt='simple', headers=[
             "",
             "ANAME",
