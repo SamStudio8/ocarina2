@@ -814,7 +814,7 @@ def wrap_list_mag(args, config, metadata={}, metrics={}):
 
     ec = j.get("error_code", "")
     if ec.startswith("BIGMAG"):
-        print("MAG contains %s groups or artifacts, if you are sure you want to list it use --force." % ec.split(':'))
+        print("MAG contains %s groups or artifacts, if you are sure you want to list it use --force." % ec.split(':')[1])
         return
 
     if j["mag"]:
