@@ -28,6 +28,8 @@ ENDPOINTS = {
         "api.artifact.biosample.get": "/api/v2/artifact/biosample/get/",
         "api.process.sequencing.get": "/api/v2/process/sequencing/get/",
 
+        "api.artifact.biosample.query.validity": "/api/v2/artifact/biosample/query/validity/",
+
         "api.majora.summary.get": "/api/v2/majora/summary/get/",
         "api.outbound.summary.get": "/api/v2/outbound/summary/get/",
         "api.majora.task.get": "/api/v2/majora/task/get/",
@@ -198,6 +200,11 @@ def cli():
     get_biosample_parser.add_argument("--central-sample-id", "--coguk-sample-id", required=True)
     get_biosample_parser.set_defaults(func=wrap_get_biosample)
 
+    get_biosamplev_parser = get_subparsers.add_parser("biosample-validity", parents=[get_parser], add_help=False,
+            help="fetch biosamples status")
+    get_biosamplev_parser.add_argument("--biosamples", nargs='+', required=True)
+    get_biosamplev_parser.set_defaults(func=wrap_get_biosamplev)
+
     get_sequencing_parser = get_subparsers.add_parser("sequencing", parents=[get_parser], add_help=False,
             help="fetch a sequencing run")
     get_sequencing_parser.add_argument("--run-name", required=True, nargs='+')
@@ -317,6 +324,11 @@ def wrap_single_biosample_emit(args, config, metadata={}, metrics={}):
         v_args,
     ]}
     util.emit(config, ENDPOINTS["api.artifact.biosample.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
+
+def wrap_get_biosamplev(args, config, metadata={}, metrics={}):
+    v_args = vars(args)
+    del v_args["func"]
+    util.emit(config, ENDPOINTS["api.artifact.biosample.query.validity"], v_args, quiet=args.quiet)
 
 def wrap_get_biosample(args, config, metadata={}, metrics={}):
     v_args = vars(args)
