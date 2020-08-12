@@ -829,7 +829,7 @@ def wrap_list_mag(args, config, metadata={}, metrics={}):
         print("MAG contains %s groups or artifacts, if you are sure you want to list it use --force." % ec.split(':')[1])
         return
 
-    if j["mag"]:
+    if j.get("mag"):
         from tabulate import tabulate
         from colorama import init
         init()
@@ -839,12 +839,12 @@ def wrap_list_mag(args, config, metadata={}, metrics={}):
         table = []
         row = []
         row.append(Fore.YELLOW + '...' + Style.RESET_ALL)
-        if j["mag"]["root"]:
-            row.append(Fore.YELLOW + j["mag"]["root"]["name"] + Style.RESET_ALL)
+        if j["mag"]["root_group"]:
+            row.append(Fore.YELLOW + j["mag"]["root_group"]["name"] + Style.RESET_ALL)
             row.append(None)
-            row.append(j["mag"]["root"]["kind"])
-            row.append(j["mag"]["root"]["path"])
-            row.append(Fore.YELLOW + j["mag"]["root"]["id"] + Style.RESET_ALL)
+            row.append(j["mag"]["root_group"]["group_kind"])
+            row.append(j["mag"]["root_group"]["group_path"])
+            row.append(Fore.YELLOW + j["mag"]["root_group"]["id"] + Style.RESET_ALL)
         else:
             row.append(None)
             row.append(None)
@@ -855,12 +855,12 @@ def wrap_list_mag(args, config, metadata={}, metrics={}):
 
         row = []
         row.append(Fore.YELLOW + '.. ' + Style.RESET_ALL)
-        if j["mag"]["parent"]:
-            row.append(Fore.YELLOW + j["mag"]["parent"]["name"] + Style.RESET_ALL)
+        if j["mag"]["parent_group"]:
+            row.append(Fore.YELLOW + j["mag"]["parent_group"]["name"] + Style.RESET_ALL)
             row.append(None)
-            row.append(j["mag"]["parent"]["kind"])
-            row.append(j["mag"]["parent"]["path"])
-            row.append(Fore.YELLOW + j["mag"]["parent"]["id"] + Style.RESET_ALL)
+            row.append(j["mag"]["parent_group"]["group_kind"])
+            row.append(j["mag"]["parent_group"]["group_path"])
+            row.append(Fore.YELLOW + j["mag"]["parent_group"]["id"] + Style.RESET_ALL)
         else:
             row.append(None)
             row.append(None)
@@ -891,16 +891,16 @@ def wrap_list_mag(args, config, metadata={}, metrics={}):
             for g in j["mag"][g_t]:
                 row = []
                 if g_tc == "sl":
-                    if g[0]:
+                    if g["to_group"]:
                         row.append(Fore.CYAN + '%s-' % g_tc + Style.RESET_ALL)
-                        row.append(Fore.CYAN + g[2] + Style.RESET_ALL)
-                        row.append(g[3])
-                        row.append(g[1])
+                        row.append(Fore.CYAN + g["name"] + Style.RESET_ALL)
+                        row.append(g["to_group"]["path"])
+                        row.append(g["to_group"]["name"])
                         row.append(j["mag"]["group_path"])
-                        row.append(Fore.CYAN + g[0] + Style.RESET_ALL)
+                        row.append(Fore.CYAN + g["to_group"]["id"] + Style.RESET_ALL)
                     else:
                         row.append(Fore.RED + Back.BLACK + '%s-' % g_tc + Style.RESET_ALL)
-                        row.append(Fore.RED + Back.BLACK + g[2] + Style.RESET_ALL)
+                        row.append(Fore.RED + Back.BLACK + g["name"] + Style.RESET_ALL)
                         row.append(None)
                         row.append(None)
                         row.append(j["mag"]["group_path"])
@@ -908,20 +908,20 @@ def wrap_list_mag(args, config, metadata={}, metrics={}):
                     table.append(row)
                 else:
                     row.append(Fore.BLUE + '%s-' % g_tc + Style.RESET_ALL)
-                    row.append(Fore.BLUE + g[2] + Style.RESET_ALL)
+                    row.append(Fore.BLUE + g['name'] + Style.RESET_ALL)
                     row.append(None)
-                    row.append(g[1])
-                    row.append(g[2])
-                    row.append(Fore.BLUE + g[0] + Style.RESET_ALL)
+                    row.append(g['group_kind'])
+                    row.append(g['group_path'])
+                    row.append(Fore.BLUE + g['id'] + Style.RESET_ALL)
                     table.append(row)
-                    for a in g[4]:
+                    for a in g.get('artifacts', []):
                         row = []
                         row.append(Fore.WHITE + '-%sa' % g_tc[1] + Style.RESET_ALL)
-                        row.append(a[2])
-                        row.append(a[3])
-                        row.append(a[1])
-                        row.append(g[2])
-                        row.append(a[0])
+                        row.append(a['name'])
+                        row.append(a['path'])
+                        row.append(a['kind'])
+                        row.append(g['name'])
+                        row.append(a['id'])
                         table.append(row)
                     row = [None]*6
                     table.append(row)
