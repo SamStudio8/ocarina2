@@ -894,7 +894,7 @@ def wrap_list_mag(args, config, metadata={}, metrics={}):
                     if g["to_group"]:
                         row.append(Fore.CYAN + '%s-' % g_tc + Style.RESET_ALL)
                         row.append(Fore.CYAN + g["name"] + Style.RESET_ALL)
-                        row.append(g["to_group"]["path"])
+                        row.append(g["to_group"]["group_path"])
                         row.append(g["to_group"]["name"])
                         row.append(j["mag"]["group_path"])
                         row.append(Fore.CYAN + g["to_group"]["id"] + Style.RESET_ALL)
