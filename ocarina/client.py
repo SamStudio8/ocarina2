@@ -377,10 +377,10 @@ def wrap_get_summary(args, config, metadata={}, metrics={}):
 
     if args.md:
         if len(j["get"]["site_qc"]) >= 1:
-            print("| Sample Site | Seq Site | Count | Pass | Pass% | Fail | Fail% |")
-            print("|------------:|---------:|------:|-----:|-------:|-----:|-------:|")
+            print("| Sample Site | Seq Site | Count | Pass | Pass% | Fail | Fail% | Surveillance | Surveillance% |")
+            print("|------------:|---------:|------:|-----:|------:|-----:|------:|-------------:|--------------:|")
             for group in j["get"]["site_qc"]:
-                print("| %s | %s | %d | %d | %.2f | %d | %.2f" % (
+                print("| %s | %s | %d | %d | %.2f | %d | %.2f | %d | %.2f |" % (
                     group["sourcesite"] if group["sourcesite"] != group["site"] else "-",
                     group["site"],
                     group["count"],
@@ -388,6 +388,8 @@ def wrap_get_summary(args, config, metadata={}, metrics={}):
                     group["pass_count"]/group["count"] * 100,
                     group["fail_count"],
                     group["fail_count"]/group["count"] * 100,
+                    group["surveillance_count"],
+                    group["surveillance_count"]/group["count"] * 100,
                 ))
 
 def wrap_get_task(args, config, metadata={}, metrics={}):
