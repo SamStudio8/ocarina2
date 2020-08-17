@@ -388,8 +388,8 @@ def wrap_get_summary(args, config, metadata={}, metrics={}):
                     group["pass_count"]/group["count"] * 100,
                     group["fail_count"],
                     group["fail_count"]/group["count"] * 100,
-                    group["surveillance_count"],
-                    group["surveillance_count"]/group["count"] * 100,
+                    group["surveillance_num"],
+                    group["surveillance_num"]/group["surveillance_dom"] * 100,
                 ))
 
 def wrap_get_task(args, config, metadata={}, metrics={}):
