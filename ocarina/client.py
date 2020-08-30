@@ -204,6 +204,7 @@ def cli():
     get_biosamplev_parser = get_subparsers.add_parser("biosample-validity", parents=[get_parser], add_help=False,
             help="fetch biosamples status")
     get_biosamplev_parser.add_argument("--biosamples", nargs='+', required=True)
+    get_biosamplev_parser.add_argument("--tsv", action="store_true")
     get_biosamplev_parser.set_defaults(func=wrap_get_biosamplev)
 
     get_sequencing_parser = get_subparsers.add_parser("sequencing", parents=[get_parser], add_help=False,
@@ -329,7 +330,17 @@ def wrap_single_biosample_emit(args, config, metadata={}, metrics={}):
 def wrap_get_biosamplev(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
-    util.emit(config, ENDPOINTS["api.artifact.biosample.query.validity"], v_args, quiet=args.quiet)
+    j = util.emit(config, ENDPOINTS["api.artifact.biosample.query.validity"], v_args, quiet=args.quiet)
+
+    if args.tsv:
+        if len(j["result"]) > 0:
+            print("sample_id\texists\thas_metadata")
+            for sample_id, sample_d in j["result"].items():
+                print("\t".join([str(x) for x in [
+                    sample_id,
+                    1 if sample_d["exists"] else 0,
+                    1 if sample_d["has_metadata"] else 0,
+                ]]))
 
 def wrap_get_biosample(args, config, metadata={}, metrics={}):
     v_args = vars(args)
@@ -389,7 +400,7 @@ def wrap_get_summary(args, config, metadata={}, metrics={}):
                     group["fail_count"],
                     group["fail_count"]/group["count"] * 100,
                     group["surveillance_num"],
-                    group["surveillance_num"]/group["surveillance_dom"] * 100,
+                    0 if group["surveillance_dom"] == 0 else group["surveillance_num"]/group["surveillance_dom"] * 100,
                 ))
 
 def wrap_get_task(args, config, metadata={}, metrics={}):
