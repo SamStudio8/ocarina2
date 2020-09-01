@@ -5,6 +5,7 @@ import hashlib
 from datetime import datetime
 
 import requests
+from requests_oauthlib import OAuth2Session
 
 from . import client
 from . import version
@@ -34,9 +35,7 @@ def get_config(env=False):
         return config
 
 
-def emit(config, endpoint, payload, quiet=False, sudo_as=None):
-    payload["username"] = config["MAJORA_USER"]
-    payload["token"] = config["MAJORA_TOKEN"]
+def emit(config, endpoint, payload, quiet=False, sudo_as=None, oauth=False):
     payload["client_name"] = "ocarina"
     payload["client_version"] = version.__version__
 
@@ -54,10 +53,29 @@ def emit(config, endpoint, payload, quiet=False, sudo_as=None):
             angry = True
             del payload["angry"]
 
-    r = requests.post(config["MAJORA_DOMAIN"] + endpoint + '/',
-            headers = {"Content-Type": "application/json", "charset": "UTF-8"},
-            json = payload,
-    )
+    payload["username"] = config["MAJORA_USER"]
+
+    if not oauth:
+        payload["token"] = config["MAJORA_TOKEN"]
+        r = requests.post(config["MAJORA_DOMAIN"] + endpoint + '/',
+                headers = {"Content-Type": "application/json", "charset": "UTF-8"},
+                json = payload,
+        )
+    else:
+        # Get a grant
+        #TODO Very particular about the URL here - need to mitigate risk of //
+        oauth = OAuth2Session(client_id=config["CLIENT_ID"], redirect_uri=config["MAJORA_DOMAIN"]+"o/callback/", scope="majora2.temp_can_read_pags_via_api")
+        print("Please request a grant via:")
+        url, state = oauth.authorization_url(config["MAJORA_DOMAIN"]+"o/authorize/")
+        print(url)
+        authorization_response = input('Enter the full callback URL as seen in your browser window\n')
+        token = oauth.fetch_token(config["MAJORA_DOMAIN"]+"o/token/", authorization_response=authorization_response, client_secret=config["CLIENT_SECRET"])
+        payload["token"] = str(token["access_token"])
+
+        r = oauth.post(config["MAJORA_DOMAIN"] + endpoint + '/',
+                headers = {"Content-Type": "application/json", "charset": "UTF-8"},
+                json = payload,
+        )
 
     if r.status_code != 200:
         sys.stderr.write("Request" + "="*(80-len("Request ")) + '\n')

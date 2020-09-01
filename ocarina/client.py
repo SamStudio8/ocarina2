@@ -47,6 +47,7 @@ def cli():
     parser.add_argument("--env", help="use env vars instead of ~/.ocarina", action="store_true")
     parser.add_argument("--angry", help="exit if API returns errors > 0", action="store_true", default=False)
     parser.add_argument("-v", "--version", action='version', version="ocarina v%s" %  __version__)
+    parser.add_argument("--oauth", help="use experimental OAuth authorization", action="store_true", default=False)
 
     action_parser = parser.add_subparsers()
     put_parser = action_parser.add_parser("put")
@@ -325,12 +326,12 @@ def wrap_single_biosample_emit(args, config, metadata={}, metrics={}):
     payload = {"biosamples": [
         v_args,
     ]}
-    util.emit(config, ENDPOINTS["api.artifact.biosample.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
+    util.emit(config, ENDPOINTS["api.artifact.biosample.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as, oauth=args.oauth)
 
 def wrap_get_biosamplev(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
-    j = util.emit(config, ENDPOINTS["api.artifact.biosample.query.validity"], v_args, quiet=args.quiet)
+    j = util.emit(config, ENDPOINTS["api.artifact.biosample.query.validity"], v_args, quiet=args.quiet, oauth=args.oauth)
 
     if args.tsv:
         if len(j["result"]) > 0:
@@ -345,12 +346,12 @@ def wrap_get_biosamplev(args, config, metadata={}, metrics={}):
 def wrap_get_biosample(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
-    util.emit(config, ENDPOINTS["api.artifact.biosample.get"], v_args, quiet=args.quiet)
+    util.emit(config, ENDPOINTS["api.artifact.biosample.get"], v_args, quiet=args.quiet, oauth=args.oauth)
 
 def wrap_get_outbound_summary(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
-    j = util.emit(config, ENDPOINTS["api.outbound.summary.get"], v_args, quiet=args.quiet)
+    j = util.emit(config, ENDPOINTS["api.outbound.summary.get"], v_args, quiet=args.quiet, oauth=args.oauth)
 
     if args.md:
         cumsum = 0
@@ -384,7 +385,7 @@ def wrap_get_outbound_summary(args, config, metadata={}, metrics={}):
 def wrap_get_summary(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
-    j = util.emit(config, ENDPOINTS["api.majora.summary.get"], v_args, quiet=args.quiet)
+    j = util.emit(config, ENDPOINTS["api.majora.summary.get"], v_args, quiet=args.quiet, oauth=args.oauth)
 
     if args.md:
         if len(j["get"]["site_qc"]) >= 1:
@@ -406,24 +407,24 @@ def wrap_get_summary(args, config, metadata={}, metrics={}):
 def wrap_get_task(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
-    j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=args.quiet)
+    j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=args.quiet, oauth=args.oauth)
 
 def wrap_del_task(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
-    j = util.emit(config, ENDPOINTS["api.majora.task.delete"], v_args, quiet=args.quiet)
+    j = util.emit(config, ENDPOINTS["api.majora.task.delete"], v_args, quiet=args.quiet, oauth=args.oauth)
 
 def wrap_get_qc(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
 
     if args.task_id:
-        j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=args.quiet)
+        j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=args.quiet, oauth=args.oauth)
         #TODO move this to part of emit
         if j.get("task", {}).get("state", "") != "SUCCESS":
             return
     else:
-        j = util.emit(config, ENDPOINTS["api.pag.qc.get"], v_args, quiet=args.quiet)
+        j = util.emit(config, ENDPOINTS["api.pag.qc.get"], v_args, quiet=args.quiet, oauth=args.oauth)
 
     #TODO sam why
     if args.task_wait:
@@ -439,7 +440,7 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
             attempt += 1
             sys.stderr.write("[WAIT] Giving Majora a minute to finish task %s (%d)...\n" % (v_args["task_id"], attempt))
             time.sleep(60 * args.task_wait_minutes)
-            j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=True)
+            j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=True, oauth=args.oauth)
             state = j.get("task", {}).get("state", "UNKNOWN")
         sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
 
@@ -560,19 +561,19 @@ def wrap_get_qc(args, config, metadata={}, metrics={}):
                 
 
     if args.task_del and j.get("task", {}).get("state", "") == "SUCCESS":
-        j = util.emit(config, ENDPOINTS["api.majora.task.delete"], v_args, quiet=args.quiet)
+        j = util.emit(config, ENDPOINTS["api.majora.task.delete"], v_args, quiet=args.quiet, oauth=args.oauth)
 
 def wrap_get_sequencing(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
 
     if args.task_id:
-        j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=args.quiet)
+        j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=args.quiet, oauth=args.oauth)
         #TODO move this to part of emit
         if j.get("task", {}).get("state", "") != "SUCCESS":
             return
     else:
-        j = util.emit(config, ENDPOINTS["api.process.sequencing.get"], v_args, quiet=args.quiet)
+        j = util.emit(config, ENDPOINTS["api.process.sequencing.get"], v_args, quiet=args.quiet, oauth=args.oauth)
 
     #TODO sam why
     if args.task_wait:
@@ -588,7 +589,7 @@ def wrap_get_sequencing(args, config, metadata={}, metrics={}):
             attempt += 1
             sys.stderr.write("[WAIT] Giving Majora a minute to finish task %s (%d)...\n" % (v_args["task_id"], attempt))
             time.sleep(60 * args.task_wait_minutes)
-            j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=True)
+            j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=True, oauth=args.oauth)
             state = j.get("task", {}).get("state", "UNKNOWN")
         sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
 
@@ -705,7 +706,7 @@ def wrap_sequencing_emit(args, config, metadata={}, metrics={}):
             v_args,
         ]
     }
-    util.emit(config, ENDPOINTS["api.process.sequencing.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
+    util.emit(config, ENDPOINTS["api.process.sequencing.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as, oauth=args.oauth)
 
 def wrap_library_emit(args, config, metadata={}, metrics={}):
     v_args = vars(args)
@@ -742,7 +743,7 @@ def wrap_library_emit(args, config, metadata={}, metrics={}):
 
     v_args["metadata"] = metadata
     v_args["biosamples"] = submit_biosamples
-    util.emit(config, ENDPOINTS["api.artifact.library.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
+    util.emit(config, ENDPOINTS["api.artifact.library.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as, oauth=args.oauth)
 
 def wrap_digitalresource_emit(args, config, metadata={}, metrics={}):
     v_args = vars(args)
@@ -808,14 +809,14 @@ def wrap_digitalresource_emit(args, config, metadata={}, metrics={}):
         "bridge_artifact": args.bridge_artifact,
         "artifact_uuid": args.artifact_uuid,
     }
-    util.emit(config, ENDPOINTS["api.artifact.file.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as)
+    util.emit(config, ENDPOINTS["api.artifact.file.add"], payload, quiet=args.quiet, sudo_as=args.sudo_as, oauth=args.oauth)
 
 def wrap_tag_emit(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
 
     v_args["metadata"] = metadata
-    util.emit(config, ENDPOINTS["api.meta.tag.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
+    util.emit(config, ENDPOINTS["api.meta.tag.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as, oauth=args.oauth)
 
 def wrap_metric_emit(args, config, metadata={}, metrics={}):
     v_args = vars(args)
@@ -825,18 +826,18 @@ def wrap_metric_emit(args, config, metadata={}, metrics={}):
         v_args["artifact_path"] = os.path.abspath(v_args["artifact_path"])
     v_args["metrics"] = metadata
     del v_args["metadata"]
-    util.emit(config, ENDPOINTS["api.meta.metric.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
+    util.emit(config, ENDPOINTS["api.meta.metric.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as, oauth=args.oauth)
 
 def wrap_qc_emit(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
     del v_args["metadata"]
-    util.emit(config, ENDPOINTS["api.meta.qc.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
+    util.emit(config, ENDPOINTS["api.meta.qc.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as, oauth=args.oauth)
 
 def wrap_list_mag(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
-    j = util.emit(config, ENDPOINTS["api.group.mag.get"], v_args, quiet=True, sudo_as=None)
+    j = util.emit(config, ENDPOINTS["api.group.mag.get"], v_args, quiet=True, sudo_as=None, oauth=args.oauth)
 
     ec = j.get("error_code", "")
     if ec.startswith("BIGMAG"):
@@ -956,7 +957,7 @@ def wrap_publish_emit(args, config, metadata={}, metrics={}):
     #v_args["rejected"] = False
     #if v_args["rejected_reason"]:
     #    v_args["rejected"] = True
-    j = util.emit(config, ENDPOINTS["api.pag.accession.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as)
+    j = util.emit(config, ENDPOINTS["api.pag.accession.add"], v_args, quiet=args.quiet, sudo_as=args.sudo_as, oauth=args.oauth)
     if j["errors"] == 0:
         print(0, args.publish_group, j["updated"][0][2])
     else:
