@@ -66,7 +66,7 @@ def emit(config, endpoint, payload, quiet=False, sudo_as=None, oauth=False):
         #TODO Very particular about the URL here - need to mitigate risk of //
         oauth = OAuth2Session(client_id=config["CLIENT_ID"], redirect_uri=config["MAJORA_DOMAIN"]+"o/callback/", scope="majora2.temp_can_read_pags_via_api")
         print("Please request a grant via:")
-        url, state = oauth.authorization_url(config["MAJORA_DOMAIN"]+"o/authorize/")
+        url, state = oauth.authorization_url(config["MAJORA_DOMAIN"]+"o/authorize/", approval_prompt="auto")
         print(url)
         authorization_response = input('Enter the full callback URL as seen in your browser window\n')
         token = oauth.fetch_token(config["MAJORA_DOMAIN"]+"o/token/", authorization_response=authorization_response, client_secret=config["CLIENT_SECRET"])
