@@ -35,16 +35,34 @@ def get_config(env=False):
         return config
 
 
-def emit(config, endpoint, payload, quiet=False, sudo_as=None, oauth=False, oauth_scope=None):
 
-    params = payload["params"]
-    del payload["params"]
+
+
+def get_oauth_session(config, oauth_scope):
+    #TODO Very particular about the URL here - need to mitigate risk of //
+    oauth = OAuth2Session(client_id=config["CLIENT_ID"], redirect_uri=config["MAJORA_DOMAIN"]+"o/callback/", scope=oauth_scope)
+    print("Please request a grant via:")
+    url, state = oauth.authorization_url(config["MAJORA_DOMAIN"]+"o/authorize/", approval_prompt="auto")
+    print(url)
+    authorization_response = input('Enter the full callback URL as seen in your browser window\n')
+    token = oauth.fetch_token(config["MAJORA_DOMAIN"]+"o/token/", authorization_response=authorization_response, client_secret=config["CLIENT_SECRET"])
+    return oauth, token
+
+
+def emit(ocarina, endpoint, payload, quiet=False):
+
+    params = payload.get("params")
+    if params:
+        del payload["params"]
 
     payload["client_name"] = "ocarina"
     payload["client_version"] = version.__version__
 
-    if sudo_as:
-        payload["sudo_as"] = sudo_as
+    if ocarina.sudo_as:
+        payload["sudo_as"] = ocarina.sudo_as
+
+    if not quiet:
+        quiet = ocarina.quiet
 
     if "quiet" in payload:
         del payload["quiet"]
@@ -57,46 +75,49 @@ def emit(config, endpoint, payload, quiet=False, sudo_as=None, oauth=False, oaut
             angry = True
             del payload["angry"]
 
-    payload["username"] = config["MAJORA_USER"]
+    payload["username"] = ocarina.config["MAJORA_USER"]
 
-    oauth_scope = None
+    oauth_scope = "majora2.temp_can_read_pags_via_api"
     request_type = "POST"
     if type(endpoint) == dict:
         if "scope" in endpoint:
             oauth_scope = endpoint["scope"]
-            if not oauth:
+            if not ocarina.oauth:
                 sys.stderr.write("--oauth is required with this v3 API endpoint")
                 sys.exit(1)
         request_type = endpoint["type"]
         endpoint = endpoint["endpoint"]
 
-    if not oauth:
-        payload["token"] = config["MAJORA_TOKEN"]
-        r = requests.post(config["MAJORA_DOMAIN"] + endpoint + '/',
-                headers = {"Content-Type": "application/json", "charset": "UTF-8"},
+    if not ocarina.oauth:
+        payload["token"] = ocarina.config["MAJORA_TOKEN"]
+        r = requests.post(ocarina.config["MAJORA_DOMAIN"] + endpoint + '/',
+                headers = {
+                    "Content-Type": "application/json",
+                    "charset": "UTF-8",
+                    "User-Agent": "%s %s" % (payload["client_name"], payload["client_version"]),
+                },
                 json = payload,
         )
     else:
-        # Get a grant
-        #TODO Very particular about the URL here - need to mitigate risk of //
-        oauth = OAuth2Session(client_id=config["CLIENT_ID"], redirect_uri=config["MAJORA_DOMAIN"]+"o/callback/", scope=oauth_scope)
-        print("Please request a grant via:")
-        url, state = oauth.authorization_url(config["MAJORA_DOMAIN"]+"o/authorize/", approval_prompt="auto")
-        print(url)
-        authorization_response = input('Enter the full callback URL as seen in your browser window\n')
-        token = oauth.fetch_token(config["MAJORA_DOMAIN"]+"o/token/", authorization_response=authorization_response, client_secret=config["CLIENT_SECRET"])
-        payload["token"] = str(token["access_token"])
+        if not ocarina.oauth_session:
+            ocarina.oauth_session, ocarina.oauth_token = get_oauth_session(ocarina.config, oauth_scope)
 
-        print(payload)
-
+        payload["token"] = "OAUTH"
         if request_type == "POST":
-            r = oauth.post(config["MAJORA_DOMAIN"] + endpoint + '/',
-                    headers = {"Content-Type": "application/json", "charset": "UTF-8"},
+            r = ocarina.oauth_session.post(ocarina.config["MAJORA_DOMAIN"] + endpoint + '/',
+                    headers = {
+                        "Content-Type": "application/json",
+                        "charset": "UTF-8",
+                        "User-Agent": "%s %s" % (payload["client_name"], payload["client_version"]),
+                    },
                     json = payload,
             )
         elif request_type == "GET":
-            r = oauth.get(config["MAJORA_DOMAIN"] + endpoint + '/',
-                    headers = {"charset": "UTF-8"},
+            r = ocarina.oauth_session.get(ocarina.config["MAJORA_DOMAIN"] + endpoint + '/',
+                    headers = {
+                        "charset": "UTF-8",
+                        "User-Agent": "%s %s" % (payload["client_name"], payload["client_version"]),
+                    },
                     params = params,
             )
 
