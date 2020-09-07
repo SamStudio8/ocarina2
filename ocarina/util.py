@@ -35,7 +35,11 @@ def get_config(env=False):
         return config
 
 
-def emit(config, endpoint, payload, quiet=False, sudo_as=None, oauth=False):
+def emit(config, endpoint, payload, quiet=False, sudo_as=None, oauth=False, oauth_scope=None):
+
+    params = payload["params"]
+    del payload["params"]
+
     payload["client_name"] = "ocarina"
     payload["client_version"] = version.__version__
 
@@ -55,6 +59,17 @@ def emit(config, endpoint, payload, quiet=False, sudo_as=None, oauth=False):
 
     payload["username"] = config["MAJORA_USER"]
 
+    oauth_scope = None
+    request_type = "POST"
+    if type(endpoint) == dict:
+        if "scope" in endpoint:
+            oauth_scope = endpoint["scope"]
+            if not oauth:
+                sys.stderr.write("--oauth is required with this v3 API endpoint")
+                sys.exit(1)
+        request_type = endpoint["type"]
+        endpoint = endpoint["endpoint"]
+
     if not oauth:
         payload["token"] = config["MAJORA_TOKEN"]
         r = requests.post(config["MAJORA_DOMAIN"] + endpoint + '/',
@@ -64,7 +79,7 @@ def emit(config, endpoint, payload, quiet=False, sudo_as=None, oauth=False):
     else:
         # Get a grant
         #TODO Very particular about the URL here - need to mitigate risk of //
-        oauth = OAuth2Session(client_id=config["CLIENT_ID"], redirect_uri=config["MAJORA_DOMAIN"]+"o/callback/", scope="majora2.temp_can_read_pags_via_api")
+        oauth = OAuth2Session(client_id=config["CLIENT_ID"], redirect_uri=config["MAJORA_DOMAIN"]+"o/callback/", scope=oauth_scope)
         print("Please request a grant via:")
         url, state = oauth.authorization_url(config["MAJORA_DOMAIN"]+"o/authorize/", approval_prompt="auto")
         print(url)
@@ -72,10 +87,18 @@ def emit(config, endpoint, payload, quiet=False, sudo_as=None, oauth=False):
         token = oauth.fetch_token(config["MAJORA_DOMAIN"]+"o/token/", authorization_response=authorization_response, client_secret=config["CLIENT_SECRET"])
         payload["token"] = str(token["access_token"])
 
-        r = oauth.post(config["MAJORA_DOMAIN"] + endpoint + '/',
-                headers = {"Content-Type": "application/json", "charset": "UTF-8"},
-                json = payload,
-        )
+        print(payload)
+
+        if request_type == "POST":
+            r = oauth.post(config["MAJORA_DOMAIN"] + endpoint + '/',
+                    headers = {"Content-Type": "application/json", "charset": "UTF-8"},
+                    json = payload,
+            )
+        elif request_type == "GET":
+            r = oauth.get(config["MAJORA_DOMAIN"] + endpoint + '/',
+                    headers = {"charset": "UTF-8"},
+                    params = params,
+            )
 
     if r.status_code != 200:
         sys.stderr.write("Request" + "="*(80-len("Request ")) + '\n')

@@ -37,6 +37,12 @@ ENDPOINTS = {
         "api.majora.task.delete": "/api/v2/majora/task/delete/",
 
         "api.group.mag.get": "/api/v2/group/mag/get/",
+
+        "api.v3.majora.mdv.get": {
+            "endpoint": "/api/v3/mdv/",
+            "type": "GET",
+            "scope": "majora2.can_read_dataview_via_api",
+        },
 }
 
 
@@ -252,6 +258,13 @@ def cli():
     get_osummary_parser.add_argument("--md-skip-zero", action="store_true")
     get_osummary_parser.set_defaults(func=wrap_get_outbound_summary)
 
+
+    get_mdv_parser = get_subparsers.add_parser("dataview", parents=[get_parser], add_help=False,
+            help="Get data through a data view")
+    get_mdv_parser.add_argument("--mdv", required=True, help="Code name of data view")
+    get_mdv_parser.set_defaults(func=wrap_get_dataview)
+
+
     del_parser = action_parser.add_parser("del")
     del_subparsers = del_parser.add_subparsers(title="actions")
 
@@ -413,6 +426,33 @@ def wrap_del_task(args, config, metadata={}, metrics={}):
     v_args = vars(args)
     del v_args["func"]
     j = util.emit(config, ENDPOINTS["api.majora.task.delete"], v_args, quiet=args.quiet, oauth=args.oauth)
+
+
+def wrap_get_dataview(args, config, metadata={}, metrics={}):
+
+    my_args = {}
+    my_args["params"] = { "mdv": args.mdv }
+
+    j = util.emit(config, ENDPOINTS["api.v3.majora.mdv.get"], my_args, quiet=args.quiet, oauth=args.oauth)
+
+    #TODO sam why
+    # why havent i just abstracted this now ffs
+    if args.task_wait:
+        if not v_args["task_id"]:
+            try:
+                task_id = j.get("tasks", [None])[0]
+            except:
+                sys.exit(2)
+            v_args["task_id"] = task_id
+        state = "PENDING"
+        attempt = 0
+        while state == "PENDING" and attempt < args.task_wait_attempts:
+            attempt += 1
+            sys.stderr.write("[WAIT] Giving Majora a minute to finish task %s (%d)...\n" % (v_args["task_id"], attempt))
+            time.sleep(60 * args.task_wait_minutes)
+            j = util.emit(config, ENDPOINTS["api.majora.task.get"], v_args, quiet=True, oauth=args.oauth)
+            state = j.get("task", {}).get("state", "UNKNOWN")
+        sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
 
 def wrap_get_qc(args, config, metadata={}, metrics={}):
     v_args = vars(args)
