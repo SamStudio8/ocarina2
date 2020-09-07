@@ -265,6 +265,7 @@ def cli():
     get_mdv_parser = get_subparsers.add_parser("dataview", parents=[get_parser], add_help=False,
             help="Get data through a data view")
     get_mdv_parser.add_argument("--mdv", required=True, help="Code name of data view")
+    get_mdv_parser.add_argument("-o", help="Output location [default: stdout]", default="-")
     get_mdv_parser.set_defaults(func=wrap_get_dataview)
 
 
@@ -340,11 +341,17 @@ X8%%S:              .8 8S888    :8.88S@:
                     metrics[k_namespace]["records"][k_record][name] = value
                 else:
                     metrics[k_namespace][name] = value
-        args.func(ocarina, args, metadata=metadata, metrics=metrics)
+
+
+        #v_args = vars(args)
+        #f = v_args["func"]
+        #del v_args["func"] TODO Will lose namespace through every function, so just leave as-is for now
+        f = args.func
+        delattr(args, "func")
+        f(ocarina, args, metadata=metadata, metrics=metrics)
 
 def wrap_single_biosample_emit(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-    del v_args["func"]
     del v_args["metric"]
 
     v_args["metadata"] = metadata
@@ -356,7 +363,6 @@ def wrap_single_biosample_emit(ocarina, args, metadata={}, metrics={}):
 
 def wrap_get_biosamplev(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-    del v_args["func"]
     j = util.emit(ocarina, ENDPOINTS["api.artifact.biosample.query.validity"], v_args)
 
     if args.tsv:
@@ -371,12 +377,10 @@ def wrap_get_biosamplev(ocarina, args, metadata={}, metrics={}):
 
 def wrap_get_biosample(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-    del v_args["func"]
     util.emit(ocarina, ENDPOINTS["api.artifact.biosample.get"], v_args)
 
 def wrap_get_outbound_summary(ocarina, args,  metadata={}, metrics={}):
     v_args = vars(args)
-    del v_args["func"]
     j = util.emit(ocarina, ENDPOINTS["api.outbound.summary.get"], v_args)
 
     if args.md:
@@ -410,7 +414,6 @@ def wrap_get_outbound_summary(ocarina, args,  metadata={}, metrics={}):
 
 def wrap_get_summary(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-    del v_args["func"]
     j = util.emit(ocarina, ENDPOINTS["api.majora.summary.get"], v_args)
 
     if args.md:
@@ -432,17 +435,14 @@ def wrap_get_summary(ocarina, args, metadata={}, metrics={}):
 
 def wrap_get_task(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-    del v_args["func"]
     j = util.emit(ocarina, ENDPOINTS["api.majora.task.get"], v_args)
 
 def wrap_del_task(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-    del v_args["func"]
     j = util.emit(ocarina, ENDPOINTS["api.majora.task.delete"], v_args)
 
 
 def wrap_get_dataview(ocarina, args, metadata={}, metrics={}):
-
     v_args = vars(args)
     my_args = {}
     my_args["params"] = { "mdv": args.mdv }
@@ -467,10 +467,10 @@ def wrap_get_dataview(ocarina, args, metadata={}, metrics={}):
             j = util.emit(ocarina, ENDPOINTS["api.majora.task.get"], v_args, quiet=True)
             state = j.get("task", {}).get("state", "UNKNOWN")
         sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
+        print(j)
 
 def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-    del v_args["func"]
 
     if args.task_id:
         j = util.emit(ocarina, ENDPOINTS["api.majora.task.get"], v_args)
@@ -619,7 +619,6 @@ def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
 
 def wrap_get_sequencing(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-    del v_args["func"]
 
     if args.task_id:
         j = util.emit(ocarina, ENDPOINTS["api.majora.task.get"], v_args)
@@ -750,7 +749,6 @@ def wrap_get_sequencing(ocarina, args, metadata={}, metrics={}):
 
 def wrap_sequencing_emit(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-    del v_args["func"]
 
     payload = {
         "metadata": metadata,
@@ -764,7 +762,6 @@ def wrap_sequencing_emit(ocarina, args, metadata={}, metrics={}):
 
 def wrap_library_emit(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-    del v_args["func"]
 
     if args.biosample:
         submit_biosamples = []
@@ -867,14 +864,12 @@ def wrap_digitalresource_emit(ocarina, args, metadata={}, metrics={}):
 
 def wrap_tag_emit(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-    del v_args["func"]
 
     v_args["metadata"] = metadata
     util.emit(ocarina, ENDPOINTS["api.meta.tag.add"], v_args)
 
 def wrap_metric_emit(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-    del v_args["func"]
 
     if v_args["artifact_path"]:
         v_args["artifact_path"] = os.path.abspath(v_args["artifact_path"])
@@ -884,13 +879,11 @@ def wrap_metric_emit(ocarina, args, metadata={}, metrics={}):
 
 def wrap_qc_emit(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-    del v_args["func"]
     del v_args["metadata"]
     util.emit(ocarina, ENDPOINTS["api.meta.qc.add"], v_args)
 
 def wrap_list_mag(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-    del v_args["func"]
     j = util.emit(ocarina, ENDPOINTS["api.group.mag.get"], v_args, quiet=True)
 
     ec = j.get("error_code", "")
@@ -1006,7 +999,6 @@ def wrap_list_mag(ocarina, args, metadata={}, metrics={}):
 
 def wrap_publish_emit(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-    del v_args["func"]
     v_args["metadata"] = metadata
     #v_args["rejected"] = False
     #if v_args["rejected_reason"]:
