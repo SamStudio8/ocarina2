@@ -265,7 +265,9 @@ def cli():
     get_mdv_parser = get_subparsers.add_parser("dataview", parents=[get_parser], add_help=False,
             help="Get data through a data view")
     get_mdv_parser.add_argument("--mdv", required=True, help="Code name of data view")
-    get_mdv_parser.add_argument("-o", help="Output location [default: stdout]", default="-")
+    get_mdv_parser.add_argument("--output", "-o", help="Output location [default: stdout]", default="-")
+    get_mdv_parser.add_argument("--output-table", action="store_true")
+    get_mdv_parser.add_argument("--output-table-delimiter", default='\t')
     get_mdv_parser.set_defaults(func=wrap_get_dataview)
 
 
@@ -452,6 +454,12 @@ def wrap_get_dataview(ocarina, args, metadata={}, metrics={}):
     #TODO sam why
     # why havent i just abstracted this now ffs
     if args.task_wait:
+
+        if args.output == "-":
+            out_f = sys.stdout
+        else:
+            out_f = open(v_args.output, 'w')
+
         if not v_args["task_id"]:
             try:
                 task_id = j.get("tasks", [None])[0]
@@ -467,7 +475,30 @@ def wrap_get_dataview(ocarina, args, metadata={}, metrics={}):
             j = util.emit(ocarina, ENDPOINTS["api.majora.task.get"], v_args, quiet=True)
             state = j.get("task", {}).get("state", "UNKNOWN")
         sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
-        print(j)
+
+        json_data = j.get("data")
+        if json_data:
+            # try to flatten the non-object keys
+            if args.output_table:
+                keys = set([])
+                # collect all possible keys naively
+                for row in json_data:
+                    keys.update(row.keys())
+
+                # iterate and dump
+                csv_w = csv.DictWriter(out_f, fieldnames=keys, delimiter=args.output_table_delimiter)
+                csv_w.writeheader()
+                for row in json_data:
+                    csv_w.writerow(row)
+            else:
+                # Just dump to JSON to file
+                json.dump(json_data, out_f)
+        else:
+            sys.stderr.write("No data returned.\n")
+            sys.exit(3)
+
+        if args.output != "-":
+            out_f.close()
 
 def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
