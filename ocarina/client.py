@@ -458,7 +458,7 @@ def wrap_get_dataview(ocarina, args, metadata={}, metrics={}):
         if args.output == "-":
             out_f = sys.stdout
         else:
-            out_f = open(v_args.output, 'w')
+            out_f = open(args.output, 'w')
 
         if not v_args["task_id"]:
             try:
