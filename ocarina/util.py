@@ -28,6 +28,8 @@ def get_config(env=False):
             "MAJORA_DOMAIN": os.getenv("MAJORA_DOMAIN"),
             "MAJORA_USER": os.getenv("MAJORA_USER"),
             "MAJORA_TOKEN": os.getenv("MAJORA_TOKEN"),
+            "CLIENT_ID": os.getenv("MAJORA_CLIENT_ID"),
+            "CLIENT_SECRET": os.getenv("MAJORA_CLIENT_SECRET"),
         }
         if None in config.values():
             sys.stderr.write('''MAJORA_DOMAIN, MAJORA_USER, MAJORA_TOKEN must be set in your environment.\n''')
