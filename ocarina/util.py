@@ -35,11 +35,50 @@ def get_config(env=False):
             sys.exit(1)
         return config
 
+def oauth_load_tokens():
+    config_path = os.path.expanduser("~/.ocarina-tokens")
+    if os.path.exists(config_path):
+        with open(config_path) as config_fh:
+            config = json.load(config_fh)
+            return config
+    else:
+        return {}
 
+def oauth_save_tokens(token):
+    tokens = oauth_load_tokens()
+    scope = " ".join(token["scope"])
+    tokens[scope] = token
 
+    config_path = os.path.expanduser("~/.ocarina-tokens")
+    with open(config_path, 'w') as config_fh:
+        json.dump(tokens, config_fh)
 
+def handle_oauth(config, oauth_scope):
+    tokens = oauth_load_tokens()
+    if oauth_scope in tokens:
+        # Check that token is valid
+        if datetime.fromtimestamp(tokens[oauth_scope]["expires_at"]) <= datetime.now():
+            session, token = oauth_grant_to_token(config, oauth_scope)
+        else:
+            session = OAuth2Session(
+                    client_id=config["CLIENT_ID"],
+                    token=tokens[oauth_scope],
+                    scope=oauth_scope,
+                    auto_refresh_url=config["MAJORA_DOMAIN"]+"o/token/",
+                    auto_refresh_kwargs={
+                        "client_id": config["CLIENT_ID"],
+                        "client_secret": config["CLIENT_SECRET"],
+                    },
+                    token_updater=oauth_save_tokens,
+            )
+            token = tokens[oauth_scope]
+    else:
+        # No scoped token
+        session, token = oauth_grant_to_token(config, oauth_scope)
 
-def get_oauth_session(config, oauth_scope):
+    return session, token
+
+def oauth_grant_to_token(config, oauth_scope):
     #TODO Very particular about the URL here - need to mitigate risk of //
     oauth = OAuth2Session(client_id=config["CLIENT_ID"], redirect_uri=config["MAJORA_DOMAIN"]+"o/callback/", scope=oauth_scope)
     print("Please request a grant via:")
@@ -48,7 +87,6 @@ def get_oauth_session(config, oauth_scope):
     authorization_response = input('Enter the full callback URL as seen in your browser window\n')
     token = oauth.fetch_token(config["MAJORA_DOMAIN"]+"o/token/", authorization_response=authorization_response, client_secret=config["CLIENT_SECRET"])
     return oauth, token
-
 
 def emit(ocarina, endpoint, payload, quiet=False):
 
@@ -101,7 +139,7 @@ def emit(ocarina, endpoint, payload, quiet=False):
         )
     else:
         if not ocarina.oauth_session:
-            ocarina.oauth_session, ocarina.oauth_token = get_oauth_session(ocarina.config, oauth_scope)
+            ocarina.oauth_session, ocarina.oauth_token = handle_oauth(ocarina.config, oauth_scope)
 
         payload["token"] = "OAUTH"
         if request_type == "POST":
