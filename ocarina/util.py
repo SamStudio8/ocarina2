@@ -7,7 +7,6 @@ from datetime import datetime
 import requests
 from requests_oauthlib import OAuth2Session
 
-from . import client
 from . import version
 
 def get_config(env=False):
