@@ -310,7 +310,9 @@ def cli():
 
     oauth_refresh_parser = oauth_subparsers.add_parser("refresh", parents=[oauth_parser], add_help=False,
             help="Refresh an access token")
+    oauth_refresh_parser.add_argument("--scopes", required=False, nargs='+')
     oauth_refresh_parser.set_defaults(func=wrap_oauth_refresh)
+
 
     args = parser.parse_args()
     config = util.get_config(args.env)
@@ -477,10 +479,15 @@ def wrap_del_task(ocarina, args, metadata={}, metrics={}):
     j = util.emit(ocarina, ENDPOINTS["api.majora.task.delete"], v_args)
 
 def wrap_oauth_refresh(ocarina, args, metadata={}, metrics={}):
-    for scope in util.oauth_load_tokens():
-        ocarina.oauth_session, ocarina.oauth_token = util.handle_oauth(ocarina.config, scope, force_refresh=True)
+    if args.scopes:
+        ocarina.oauth_session, ocarina.oauth_token = util.handle_oauth(ocarina.config, " ".join(args.scopes), force_refresh=True)
         if ocarina.oauth_token:
-            print("Token with scope '%s' refreshed successfully" % scope)
+            print("Token with scope '%s' refreshed successfully" % " ".join(args.scopes))
+    else:
+        for scope in util.oauth_load_tokens():
+            ocarina.oauth_session, ocarina.oauth_token = util.handle_oauth(ocarina.config, scope, force_refresh=True)
+            if ocarina.oauth_token:
+                print("Token with scope '%s' refreshed successfully" % scope)
 
 def wrap_get_dataview(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
