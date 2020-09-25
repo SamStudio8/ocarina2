@@ -279,6 +279,15 @@ def cli():
     del_task_parser.add_argument("--task-id", required=True)
     del_task_parser.set_defaults(func=wrap_del_task)
 
+
+    oauth_parser = action_parser.add_parser("oauth")
+    oauth_subparsers = oauth_parser.add_subparsers(title="actions")
+
+    oauth_refresh_parser = oauth_subparsers.add_parser("refresh", parents=[oauth_parser], add_help=False,
+            help="Refresh an access token")
+    oauth_refresh_parser.add_argument("--scopes", required=True, nargs='+')
+    oauth_refresh_parser.set_defaults(func=wrap_oauth_refresh)
+
     args = parser.parse_args()
     config = util.get_config(args.env)
     if not args.quiet:
@@ -443,6 +452,10 @@ def wrap_del_task(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
     j = util.emit(ocarina, ENDPOINTS["api.majora.task.delete"], v_args)
 
+def wrap_oauth_refresh(ocarina, args, metadata={}, metrics={}):
+    ocarina.oauth_session, ocarina.oauth_token = util.handle_oauth(ocarina.config, " ".join(args.scopes), force_refresh=True)
+    if ocarina.oauth_token:
+        print("Token refreshed successfully")
 
 def wrap_get_dataview(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
@@ -643,7 +656,6 @@ def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
                     row[as_] = v
                 csv_w.writerow(row)
         sys.stderr.write("Skipped %d\n" % skipped)
-                
 
     if args.task_del and j.get("task", {}).get("state", "") == "SUCCESS":
         j = util.emit(ocarina, ENDPOINTS["api.majora.task.delete"], v_args)

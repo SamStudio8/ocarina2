@@ -44,7 +44,7 @@ def oauth_load_tokens():
     else:
         return {}
 
-def oauth_save_tokens(token):
+def oauth_save_token(token):
     tokens = oauth_load_tokens()
     scope = " ".join(token["scope"])
     tokens[scope] = token
@@ -53,12 +53,13 @@ def oauth_save_tokens(token):
     with open(config_path, 'w') as config_fh:
         json.dump(tokens, config_fh)
 
-def handle_oauth(config, oauth_scope):
+def handle_oauth(config, oauth_scope, force_refresh=False):
     tokens = oauth_load_tokens()
     if oauth_scope in tokens:
         # Check that token is valid
         if datetime.fromtimestamp(tokens[oauth_scope]["expires_at"]) <= datetime.now():
             session, token = oauth_grant_to_token(config, oauth_scope)
+            oauth_save_token(token)
         else:
             session = OAuth2Session(
                     client_id=config["CLIENT_ID"],
@@ -69,12 +70,23 @@ def handle_oauth(config, oauth_scope):
                         "client_id": config["CLIENT_ID"],
                         "client_secret": config["CLIENT_SECRET"],
                     },
-                    token_updater=oauth_save_tokens,
+                    token_updater=oauth_save_token,
             )
+
+            if force_refresh:
+                #TODO This would actually force a double refresh in the case where the session is update automatically but whatever
+                refresh_params = {
+                    "client_id": config["CLIENT_ID"],
+                    "client_secret": config["CLIENT_SECRET"],
+                }
+                token = session.refresh_token(config["MAJORA_DOMAIN"]+"o/token/", **refresh_params)
+                oauth_save_token(token)
+
             token = tokens[oauth_scope]
     else:
         # No scoped token
         session, token = oauth_grant_to_token(config, oauth_scope)
+        oauth_save_token(token)
 
     return session, token
 
