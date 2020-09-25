@@ -133,7 +133,7 @@ def emit(ocarina, endpoint, payload, quiet=False):
     if type(endpoint) == dict:
         if "scope" in endpoint:
             oauth_scope = endpoint["scope"]
-            if not ocarina.oauth:
+            if not ocarina.oauth and endpoint["version"] == 3:
                 sys.stderr.write("--oauth is required with this v3 API endpoint")
                 sys.exit(1)
         request_type = endpoint["type"]

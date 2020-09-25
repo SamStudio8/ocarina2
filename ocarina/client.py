@@ -16,14 +16,38 @@ ENDPOINTS = {
         "api.artifact.biosample.add": "/api/v2/artifact/biosample/add/",
         "api.artifact.library.add": "/api/v2/artifact/library/add/",
         "api.process.sequencing.add": "/api/v2/process/sequencing/add/",
-        "api.artifact.file.add": "/api/v2/artifact/file/add/",
+
+        "api.artifact.file.add": {
+            "endpoint": "/api/v2/artifact/file/add/",
+            "version": 2,
+            "type": "POST",
+            "scope": "majora2.add_digitalresourceartifact majora2.change_digitalresourceartifact",
+        },
 
         "api.meta.tag.add": "/api/v2/meta/tag/add/",
-        "api.meta.metric.add": "/api/v2/meta/metric/add/",
-        "api.meta.qc.add": "/api/v2/meta/qc/add/",
+
+        "api.meta.metric.add": {
+            "endpoint": "/api/v2/meta/metric/add/",
+            "version": 2,
+            "type": "POST",
+            "scope": "majora2.add_temporarymajoraartifactmetric majora2.change_temporarymajoraartifactmetric",
+        },
+
+        "api.meta.qc.add": {
+            "endpoint": "/api/v2/meta/qc/add/",
+            "version": 2,
+            "type": "POST",
+            "scope": "majora2.add_pagqualityreport majora2.change_pagqualityreport",
+        },
 
         "api.pag.qc.get": "/api/v2/pag/qc/get/",
-        "api.pag.accession.add": "/api/v2/pag/accession/add/",
+
+        "api.pag.accession.add": {
+            "endpoint": "/api/v2/pag/accession/add/",
+            "version": 2,
+            "type": "POST",
+            "scope": "majora2.add_temporaryaccessionrecord majora2.change_temporaryaccessionrecord",
+        },
 
         "api.artifact.biosample.get": "/api/v2/artifact/biosample/get/",
         "api.process.sequencing.get": "/api/v2/process/sequencing/get/",
@@ -40,6 +64,7 @@ ENDPOINTS = {
 
         "api.v3.majora.mdv.get": {
             "endpoint": "/api/v3/mdv/",
+            "version": 3,
             "type": "GET",
             "scope": "majora2.can_read_dataview_via_api",
         },
@@ -285,7 +310,6 @@ def cli():
 
     oauth_refresh_parser = oauth_subparsers.add_parser("refresh", parents=[oauth_parser], add_help=False,
             help="Refresh an access token")
-    oauth_refresh_parser.add_argument("--scopes", required=True, nargs='+')
     oauth_refresh_parser.set_defaults(func=wrap_oauth_refresh)
 
     args = parser.parse_args()
@@ -453,9 +477,10 @@ def wrap_del_task(ocarina, args, metadata={}, metrics={}):
     j = util.emit(ocarina, ENDPOINTS["api.majora.task.delete"], v_args)
 
 def wrap_oauth_refresh(ocarina, args, metadata={}, metrics={}):
-    ocarina.oauth_session, ocarina.oauth_token = util.handle_oauth(ocarina.config, " ".join(args.scopes), force_refresh=True)
-    if ocarina.oauth_token:
-        print("Token refreshed successfully")
+    for scope in util.oauth_load_tokens():
+        ocarina.oauth_session, ocarina.oauth_token = util.handle_oauth(ocarina.config, scope, force_refresh=True)
+        if ocarina.oauth_token:
+            print("Token with scope '%s' refreshed successfully" % scope)
 
 def wrap_get_dataview(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
