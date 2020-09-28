@@ -14,6 +14,13 @@ import datetime
 
 ENDPOINTS = {
         "api.artifact.biosample.add": "/api/v2/artifact/biosample/add/",
+        "api.artifact.biosample.addempty": {
+            "endpoint": "/api/v2/artifact/biosample/addempty/",
+            "version": 2,
+            "type": "POST",
+            "scope": "majora2.force_add_biosampleartifact majora2.add_biosampleartifact majora2.change_biosampleartifact majora2.add_biosourcesamplingprocess majora2.change_biosourcesamplingprocess",
+        },
+
         "api.artifact.library.add": "/api/v2/artifact/library/add/",
         "api.process.sequencing.add": "/api/v2/process/sequencing/add/",
 
@@ -84,6 +91,15 @@ def cli():
     parser.add_argument("--oauth", help="use experimental OAuth authorization", action="store_true", default=False)
 
     action_parser = parser.add_subparsers()
+
+    empty_parser = action_parser.add_parser("empty")
+
+    subparsers = empty_parser.add_subparsers(title="artifact")
+    empty_biosample_parser = subparsers.add_parser("biosample", parents=[empty_parser], add_help=False,
+            help="force one or more biosamples via the CLI")
+    empty_biosample_parser.add_argument("--ids", nargs='+', required=True)
+    empty_biosample_parser.set_defaults(func=wrap_force_biosample_emit)
+
     put_parser = action_parser.add_parser("put")
     put_parser.add_argument("-m", "--metadata", action='append', nargs=3, metavar=('tag', 'key', 'value'))
     put_parser.add_argument("--metric", action='append', nargs=3, metavar=('tag', 'key', 'value'))
@@ -386,6 +402,11 @@ X8%%S:              .8 8S888    :8.88S@:
         f = args.func
         delattr(args, "func")
         f(ocarina, args, metadata=metadata, metrics=metrics)
+
+def wrap_force_biosample_emit(ocarina, args, metadata={}, metrics={}):
+    v_args = vars(args)
+    payload = {"biosamples": v_args["ids"]}
+    util.emit(ocarina, ENDPOINTS["api.artifact.biosample.addempty"], payload)
 
 def wrap_single_biosample_emit(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
