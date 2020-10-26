@@ -13,7 +13,13 @@ import argparse
 import datetime
 
 ENDPOINTS = {
-        "api.artifact.biosample.add": "/api/v2/artifact/biosample/add/",
+        "api.artifact.biosample.add": {
+            "endpoint": "/api/v2/artifact/biosample/add/",
+            "version": 2,
+            "type": "POST",
+            "scope": "majora2.add_biosampleartifact majora2.change_biosampleartifact majora2.add_biosamplesource majora2.change_biosamplesource majora2.add_biosourcesamplingprocess majora2.change_biosourcesamplingprocess",
+        },
+
         "api.artifact.biosample.addempty": {
             "endpoint": "/api/v2/artifact/biosample/addempty/",
             "version": 2,
