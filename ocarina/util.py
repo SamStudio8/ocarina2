@@ -96,7 +96,16 @@ def oauth_grant_to_token(config, oauth_scope):
     print("Please request a grant via:")
     url, state = oauth.authorization_url(config["MAJORA_DOMAIN"]+"o/authorize/", approval_prompt="auto")
     print(url)
-    authorization_response = input('Enter the full callback URL as seen in your browser window\n')
+    authorization_response = ""
+    attempt = 1
+    while not authorization_response.startswith(config["MAJORA_DOMAIN"]):
+        if attempt == 4:
+            print("Giving up on OAuth authentication and aborting. Try again later.\n")
+            sys.exit(1)
+        elif attempt > 1:
+            print("***\nSorry, your response doesn't appear to start with the address of the callback.\nPlease paste the entire URL for the authorization page as seen in your browser bar.\n***\n")
+        authorization_response = input('Enter the full callback URL as seen in your browser window\n')
+        attempt += 1
     token = oauth.fetch_token(config["MAJORA_DOMAIN"]+"o/token/", authorization_response=authorization_response, client_secret=config["CLIENT_SECRET"])
     return oauth, token
 
