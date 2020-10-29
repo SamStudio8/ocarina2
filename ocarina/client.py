@@ -74,6 +74,7 @@ ENDPOINTS = {
         "api.majora.task.delete": "/api/v2/majora/task/delete/",
 
         "api.group.mag.get": "/api/v2/group/mag/get/",
+        "api.group.pag.suppress": "/api/v2/group/pag/suppress/",
 
         "api.v3.majora.mdv.get": {
             "endpoint": "/api/v3/mdv/",
@@ -333,6 +334,15 @@ def cli():
     oauth_refresh_parser.add_argument("--scopes", required=False, nargs='+')
     oauth_refresh_parser.set_defaults(func=wrap_oauth_refresh)
 
+
+    pag_parser = action_parser.add_parser("pag")
+    pag_subparsers = pag_parser.add_subparsers(title="actions")
+
+    pag_suppress_parser = pag_subparsers.add_parser("suppress", parents=[pag_parser], add_help=False,
+            help="Suppress a Published Artifact Group")
+    pag_suppress_parser.add_argument("--publish-group", nargs='+', required=True)
+    pag_suppress_parser.add_argument("--reason", required=True)
+    pag_suppress_parser.set_defaults(func=wrap_pag_suppress)
 
     args = parser.parse_args()
     config = util.get_config(args.env)
@@ -1109,3 +1119,6 @@ def wrap_publish_emit(ocarina, args, metadata={}, metrics={}):
     else:
         print(1, args.publish_group, '-')
 
+def wrap_pag_suppress(ocarina, args, metadata={}, metrics={}):
+    v_args = vars(args)
+    j = util.emit(ocarina, ENDPOINTS["api.group.pag.suppress"], v_args)
