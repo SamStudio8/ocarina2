@@ -54,6 +54,7 @@ ENDPOINTS = {
         },
 
         "api.pag.qc.get": "/api/v2/pag/qc/get/",
+        "api.pag.qc.get2": "/api/v2/pag/qc/get2/",
 
         "api.pag.accession.add": {
             "endpoint": "/api/v2/pag/accession/add/",
@@ -289,6 +290,20 @@ def cli():
     get_pag_parser.add_argument("--odelimiter", default='\t')
     get_pag_parser.add_argument("--ffield-true", nargs=1, metavar=("field",), action="append")
     get_pag_parser.set_defaults(func=wrap_get_qc)
+
+    get2_pag_parser = get_subparsers.add_parser("pagfiles", parents=[get_parser], add_help=False,
+            help="Get a list of all files for all PAGs that have passed a QC test")
+
+    get2_pag_parser.add_argument("--test-name", required=True)
+    get2_pag_parser.add_argument("--pass", action="store_true")
+    get2_pag_parser.add_argument("--fail", action="store_true")
+
+    #get2_pag_parser.add_argument("--service-name")
+    #get2_pag_parser.add_argument("--public", action="store_true")
+    #get2_pag_parser.add_argument("--private", action="store_true")
+    #get2_pag_parser.add_argument("--published-after", type=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').strftime('%Y-%m-%d'))
+
+    get2_pag_parser.set_defaults(func=wrap_get_qc_files)
 
 
     get_summary_parser = get_subparsers.add_parser("summary", parents=[get_parser], add_help=False,
@@ -579,6 +594,48 @@ def wrap_get_dataview(ocarina, args, metadata={}, metrics={}):
 
         if args.output != "-":
             out_f.close()
+
+
+
+def wrap_get_qc_files(ocarina, args, metadata={}, metrics={}):
+    v_args = vars(args)
+
+    if args.task_id:
+        j = util.emit(ocarina, ENDPOINTS["api.majora.task.get"], v_args)
+        #TODO move this to part of emit
+        if j.get("task", {}).get("state", "") != "SUCCESS":
+            return
+    else:
+        j = util.emit(ocarina, ENDPOINTS["api.pag.qc.get2"], v_args)
+
+    #TODO sam why
+    if args.task_wait:
+        if not v_args["task_id"]:
+            try:
+                task_id = j.get("tasks", [None])[0]
+            except:
+                sys.exit(2)
+            v_args["task_id"] = task_id
+        state = "PENDING"
+        attempt = 0
+        while state == "PENDING" and attempt < args.task_wait_attempts:
+            attempt += 1
+            sys.stderr.write("[WAIT] Giving Majora a minute to finish task %s (%d)...\n" % (v_args["task_id"], attempt))
+            time.sleep(60 * args.task_wait_minutes)
+            j = util.emit(ocarina, ENDPOINTS["api.majora.task.get"], v_args, quiet=True)
+            state = j.get("task", {}).get("state", "UNKNOWN")
+        sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
+
+
+    if "get" not in j or "count" not in j["get"]:
+        sys.exit(2)
+    if j["get"]["count"] >= 1:
+        for fdat in j["get"]["result"]:
+            #pag, kind, path, fhash, fsize, pag_qc = fdat
+            fdat[-1] = "PASS" if fdat[-1] else "FAIL"
+            print("\t".join([str(x) for x in fdat]))
+
+
 
 def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
