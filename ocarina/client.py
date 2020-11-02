@@ -27,8 +27,19 @@ ENDPOINTS = {
             "scope": "majora2.force_add_biosampleartifact majora2.add_biosampleartifact majora2.change_biosampleartifact majora2.add_biosourcesamplingprocess majora2.change_biosourcesamplingprocess",
         },
 
-        "api.artifact.library.add": "/api/v2/artifact/library/add/",
-        "api.process.sequencing.add": "/api/v2/process/sequencing/add/",
+        "api.artifact.library.add": {
+            "endpoint": "/api/v2/artifact/library/add/",
+            "version": 2,
+            "type": "POST",
+            "scope": "majora2.add_biosampleartifact majora2.change_biosampleartifact majora2.add_libraryartifact majora2.change_libraryartifact majora2.add_librarypoolingprocess majora2.change_librarypoolingprocess",
+        },
+
+        "api.process.sequencing.add": {
+            "endpoint": "/api/v2/process/sequencing/add/",
+            "version": 2,
+            "type": "POST",
+            "scope": "majora2.change_libraryartifact majora2.add_dnasequencingprocess majora2.change_dnasequencingprocess",
+        },
 
         "api.artifact.file.add": {
             "endpoint": "/api/v2/artifact/file/add/",
