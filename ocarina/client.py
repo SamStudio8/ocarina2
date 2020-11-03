@@ -20,6 +20,13 @@ ENDPOINTS = {
             "scope": "majora2.add_biosampleartifact majora2.change_biosampleartifact majora2.add_biosamplesource majora2.change_biosamplesource majora2.add_biosourcesamplingprocess majora2.change_biosourcesamplingprocess",
         },
 
+        "api.artifact.biosample.update": {
+            "endpoint": "/api/v2/artifact/biosample/update/",
+            "version": 2,
+            "type": "POST",
+            "scope": "majora2.change_biosampleartifact majora2.change_biosamplesource majora2.change_biosourcesamplingprocess",
+        },
+
         "api.artifact.biosample.addempty": {
             "endpoint": "/api/v2/artifact/biosample/addempty/",
             "version": 2,
@@ -129,7 +136,7 @@ def cli():
     biosample_parser = subparsers.add_parser("biosample", parents=[put_parser], add_help=False,
             help="add a single biosample by providing fields via the CLI")
     biosample_parser.add_argument("--adm1", required=True)
-    biosample_parser.add_argument("--central-sample-id", "--coguk-sample-id", required=True)
+    biosample_parser.add_argument("--central-sample-id", required=True)
     biosample_parser.add_argument("--is-surveillance", action="store_true")
 
     bsp_date = biosample_parser.add_mutually_exclusive_group(required=True)
@@ -149,7 +156,6 @@ def cli():
     biosample_parser.add_argument("--swab-site")
     biosample_parser.add_argument("--collection-pillar", type=int)
     biosample_parser.set_defaults(func=wrap_single_biosample_emit)
-
 
     library_parser = subparsers.add_parser("library", parents=[put_parser], add_help=False,
             help="add a sequencing library by providing fields via the CLI")
@@ -249,6 +255,15 @@ def cli():
     publish_parser.set_defaults(func=wrap_publish_emit)
 
 
+    patch_parser = action_parser.add_parser("patch")
+    patch_subparsers = patch_parser.add_subparsers(title="actions")
+    patch_biosample_parser = patch_subparsers.add_parser("biosample", parents=[patch_parser], add_help=False,
+            help="update a single biosample by providing fields via the CLI")
+    patch_biosample_parser.add_argument("--central-sample-id", required=True)
+    patch_biosample_parser.add_argument("--root-biosample-source-id", required=True)
+    patch_biosample_parser.set_defaults(func=wrap_single_biosample_patch_emit)
+
+
     list_parser = action_parser.add_parser("list")
     list_parser.add_argument("path", help="node://absolute/path/to/artifact/or/group")
     list_parser.add_argument("--sep", default="/", required=False)
@@ -266,7 +281,7 @@ def cli():
 
     get_biosample_parser = get_subparsers.add_parser("biosample", parents=[get_parser], add_help=False,
             help="fetch a biosample")
-    get_biosample_parser.add_argument("--central-sample-id", "--coguk-sample-id", required=True)
+    get_biosample_parser.add_argument("--central-sample-id", required=True)
     get_biosample_parser.set_defaults(func=wrap_get_biosample)
 
     get_biosamplev_parser = get_subparsers.add_parser("biosample-validity", parents=[get_parser], add_help=False,
@@ -458,6 +473,15 @@ def wrap_single_biosample_emit(ocarina, args, metadata={}, metrics={}):
         v_args,
     ]}
     util.emit(ocarina, ENDPOINTS["api.artifact.biosample.add"], payload)
+
+def wrap_single_biosample_patch_emit(ocarina, args, metadata={}, metrics={}):
+    v_args = vars(args)
+
+    payload = {"biosamples": [{
+        "central_sample_id": args.central_sample_id,
+        "root_biosample_source_id": args.root_biosample_source_id,
+    }]}
+    util.emit(ocarina, ENDPOINTS["api.artifact.biosample.update"], payload)
 
 def wrap_get_biosamplev(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
