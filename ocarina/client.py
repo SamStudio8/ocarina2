@@ -873,7 +873,11 @@ def wrap_get_sequencing(ocarina, args, metadata={}, metrics={}):
                                 all_possible_meta_keys.add("meta.%s.%s" % (tag, name))
                         l.update(flat_meta)
                     for b in l["biosamples"]:
+                        if args.faster:
+                            b = l["biosamples"][b]
+
                         if b["metadata"]:
+
                             flat_meta = {}
                             for tag in b["metadata"]:
                                 for name in b["metadata"][tag]:
@@ -922,6 +926,9 @@ def wrap_get_sequencing(ocarina, args, metadata={}, metrics={}):
                             lib_master[mk] = None
 
                     for b in biosamples:
+                        if args.faster:
+                            b = biosamples[b]
+
                         if not b.get("adm0") and not v_args["tsv_show_dummy"]:
                             sys.stderr.write("Skipping row: %s.%s.%s as it does not have a complete set of headers...\n" % (run, l["library_name"], b["central_sample_id"]))
                             continue
@@ -945,7 +952,16 @@ def wrap_get_sequencing(ocarina, args, metadata={}, metrics={}):
 
                         fields = []
                         for f in sorted(row):
-                            fields.append(str(row[f]))
+                            v_ = row[f]
+                            if type(row[f]) is bool:
+                                if row[f] is True:
+                                    v_ = 'Y'
+                                elif row[f] is False:
+                                    v_ = 'N'
+
+                            #if not row[f]:
+                            #    v_ = ""
+                            fields.append(str(v_))
 
                         if i == 0:
                             header = sorted(row)
