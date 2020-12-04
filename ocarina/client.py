@@ -83,6 +83,7 @@ ENDPOINTS = {
 
         "api.artifact.biosample.get": "/api/v2/artifact/biosample/get/",
         "api.process.sequencing.get": "/api/v2/process/sequencing/get/",
+        "api.process.sequencing.get2": "/api/v2/process/sequencing/get2/",
 
         "api.artifact.biosample.query.validity": "/api/v2/artifact/biosample/query/validity/",
 
@@ -295,6 +296,7 @@ def cli():
     get_sequencing_parser.add_argument("--run-name", required=True, nargs='+')
     get_sequencing_parser.add_argument("--tsv", action="store_true")
     get_sequencing_parser.add_argument("--tsv-show-dummy", action="store_true")
+    get_sequencing_parser.add_argument("--faster", action="store_true")
     get_sequencing_parser.set_defaults(func=wrap_get_sequencing)
 
 
@@ -828,7 +830,10 @@ def wrap_get_sequencing(ocarina, args, metadata={}, metrics={}):
         if j.get("task", {}).get("state", "") != "SUCCESS":
             return
     else:
-        j = util.emit(ocarina, ENDPOINTS["api.process.sequencing.get"], v_args)
+        if args.faster:
+            j = util.emit(ocarina, ENDPOINTS["api.process.sequencing.get2"], v_args)
+        else:
+            j = util.emit(ocarina, ENDPOINTS["api.process.sequencing.get"], v_args)
 
     #TODO sam why
     if args.task_wait:
@@ -920,15 +925,18 @@ def wrap_get_sequencing(ocarina, args, metadata={}, metrics={}):
                         if not b.get("adm0") and not v_args["tsv_show_dummy"]:
                             sys.stderr.write("Skipping row: %s.%s.%s as it does not have a complete set of headers...\n" % (run, l["library_name"], b["central_sample_id"]))
                             continue
-                        try:
-                            b["biosample_source_id"] = b["biosample_sources"][0]["biosample_source_id"]
-                        except:
-                            b["biosample_source_id"] = None
 
-                        try:
-                            del b["biosample_sources"]
-                        except:
-                            pass
+                        # New "faster" endpoint integrates the single biosample_source
+                        if not args.faster:
+                            try:
+                                b["biosample_source_id"] = b["biosample_sources"][0]["biosample_source_id"]
+                            except:
+                                b["biosample_source_id"] = None
+
+                            try:
+                                del b["biosample_sources"]
+                            except:
+                                pass
 
                         row = {}
                         row.update(row_master)
