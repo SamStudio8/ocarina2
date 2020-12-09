@@ -329,7 +329,8 @@ def cli():
     #get2_pag_parser.add_argument("--service-name")
     #get2_pag_parser.add_argument("--public", action="store_true")
     #get2_pag_parser.add_argument("--private", action="store_true")
-    #get2_pag_parser.add_argument("--published-after", type=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').strftime('%Y-%m-%d'))
+    get2_pag_parser.add_argument("--published-after", type=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').strftime('%Y-%m-%d'))
+    get2_pag_parser.add_argument("--suppressed-after", type=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').strftime('%Y-%m-%d'))
 
     get2_pag_parser.set_defaults(func=wrap_get_qc_files)
 
