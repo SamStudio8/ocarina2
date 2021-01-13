@@ -317,6 +317,9 @@ def cli():
     get_pag_parser.add_argument("--ofield", nargs=3, metavar=("field", "as", "default"), action="append")
     get_pag_parser.add_argument("--odelimiter", default='\t')
     get_pag_parser.add_argument("--ffield-true", nargs=1, metavar=("field",), action="append")
+
+    get_pag_parser.add_argument("--mode")
+
     get_pag_parser.set_defaults(func=wrap_get_qc)
 
     get2_pag_parser = get_subparsers.add_parser("pagfiles", parents=[get_parser], add_help=False,
@@ -804,7 +807,7 @@ def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
                     field, as_, default = ofield
                     if field[0] == '~':
                         v = field[1:]
-                        for m in re.findall("{\w+}", field):
+                        for m in re.findall("{[\w\.]+}", field):
                             if m[1:-1] in metadata:
                                 v = v.replace(m, metadata[m[1:-1]])
                     #elif fields[0] == ':'
