@@ -204,8 +204,10 @@ def cli():
     digitalresource_parser.add_argument("--source-artifact", "--source-file", required=False, nargs='+')
     digitalresource_parser.add_argument("--publish-group", required=False)
     digitalresource_parser.add_argument("--source-group", required=False, nargs='+')
-    digitalresource_parser.add_argument("--pipeline", required=True, nargs=4,
+    pipeline_group = digitalresource_parser.add_mutually_exclusive_group(required=True)
+    pipeline_group.add_argument("--pipeline", nargs=4,
             metavar=["pipe_hook", "pipe_category", "pipe_name", "pipe_version"])
+    pipeline_group.add_argument("--pipeline-hook")
     digitalresource_parser.add_argument("--node", required=False)
     digitalresource_parser.add_argument("--path", required=True)
     digitalresource_parser.add_argument("--type", required=True) #TODO --reads | --consensus | --alignment?
@@ -1082,10 +1084,6 @@ def wrap_digitalresource_emit(ocarina, args, metadata={}, metrics={}):
         "metadata": metadata,
 
         #"pipe_id": args.pipeline[0],
-        "pipe_hook": args.pipeline[0],
-        "pipe_kind": args.pipeline[1],
-        "pipe_name": args.pipeline[2],
-        "pipe_version": args.pipeline[3],
 
         "publish_group": args.publish_group,
         "source_group": args.source_group,
@@ -1093,6 +1091,17 @@ def wrap_digitalresource_emit(ocarina, args, metadata={}, metrics={}):
         "bridge_artifact": args.bridge_artifact,
         "artifact_uuid": args.artifact_uuid,
     }
+    if args.pipeline:
+        payload.update({
+            "pipe_hook": args.pipeline[0],
+            "pipe_kind": args.pipeline[1],
+            "pipe_name": args.pipeline[2],
+            "pipe_version": args.pipeline[3],
+        })
+    elif args.pipeline_hook:
+        payload.update({
+            "pipe_hook": args.pipeline_hook,
+        })
     util.emit(ocarina, ENDPOINTS["api.artifact.file.add"], payload)
 
 def wrap_tag_emit(ocarina, args, metadata={}, metrics={}):
