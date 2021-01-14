@@ -173,6 +173,7 @@ def cli():
     library_parser.add_argument("--library-seq-protocol", required=True)
     library_parser.add_argument("--library-layout-insert-length")
     library_parser.add_argument("--library-layout-read-length")
+    library_parser.add_argument("--sequencing-org-received-date", type=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').strftime('%Y-%m-%d'))
     library_parser.add_argument("--force-biosamples", action="store_true")
     library_parser.set_defaults(func=wrap_library_emit)
 
@@ -998,6 +999,19 @@ def wrap_sequencing_emit(ocarina, args, metadata={}, metrics={}):
 def wrap_library_emit(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
 
+    if args.sequencing_org_received_date:
+        sequencing_org_received_date = args.sequencing_org_received_date
+        print("""
+[WARN] Ocarina only supports setting --sequencing-org-received-date for all
+       samples at once. Your choice will be applied to all samples in this library.
+
+       This is for compatability purposes to prevent existing pipelines being
+       disrupted by the addition of this field.
+        """)
+        del v_args["sequencing_org_received_date"]
+    else:
+        sequencing_org_received_date = None
+
     if args.biosample:
         submit_biosamples = []
         for entry in args.biosample:
@@ -1006,6 +1020,7 @@ def wrap_library_emit(ocarina, args, metadata={}, metrics={}):
                 "library_source": entry[1],
                 "library_selection": entry[2],
                 "library_strategy": entry[3],
+                "sequencing_org_received_date": sequencing_org_received_date,
             })
         del v_args["biosample"]
 
@@ -1023,6 +1038,7 @@ def wrap_library_emit(ocarina, args, metadata={}, metrics={}):
                 "library_strategy": args.apply_all_library[2],
                 "library_protocol": args.apply_all_library[3],
                 "library_primers": args.apply_all_library[4],
+                "sequencing_org_received_date": sequencing_org_received_date,
             })
         del v_args["apply_all_library"]
         del v_args["biosamples"]
