@@ -192,6 +192,9 @@ def cli():
     sequencing_parser.add_argument("--flowcell-id")
     sequencing_parser.add_argument("--start-time")
     sequencing_parser.add_argument("--end-time")
+
+    sequencing_parser.add_argument("--bioinfo-pipe-name")
+    sequencing_parser.add_argument("--bioinfo-pipe-version")
     sequencing_parser.set_defaults(func=wrap_sequencing_emit)
 
 
