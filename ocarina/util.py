@@ -53,13 +53,17 @@ def oauth_save_token(token):
     with open(config_path, 'w') as config_fh:
         json.dump(tokens, config_fh)
 
-def handle_oauth(config, oauth_scope, force_refresh=False):
+def handle_oauth(config, oauth_scope, force_refresh=False, interactive=True):
     tokens = oauth_load_tokens()
     if oauth_scope in tokens:
         # Check that token is valid
         if datetime.fromtimestamp(tokens[oauth_scope]["expires_at"]) <= datetime.now():
-            session, token = oauth_grant_to_token(config, oauth_scope)
-            oauth_save_token(token)
+            if interactive:
+                session, token = oauth_grant_to_token(config, oauth_scope)
+                oauth_save_token(token)
+            else:
+                # Return None in non-interactive as we can't get a token this way
+                return None, None
         else:
             session = OAuth2Session(
                     client_id=config["CLIENT_ID"],
@@ -85,8 +89,12 @@ def handle_oauth(config, oauth_scope, force_refresh=False):
             token = tokens[oauth_scope]
     else:
         # No scoped token
-        session, token = oauth_grant_to_token(config, oauth_scope)
-        oauth_save_token(token)
+        if interactive:
+            session, token = oauth_grant_to_token(config, oauth_scope)
+            oauth_save_token(token)
+        else:
+            # Return None in non-interactive as we can't get a token this way
+            return None, None
 
     return session, token
 
@@ -109,7 +117,7 @@ def oauth_grant_to_token(config, oauth_scope):
     token = oauth.fetch_token(config["MAJORA_DOMAIN"]+"o/token/", authorization_response=authorization_response, client_secret=config["CLIENT_SECRET"])
     return oauth, token
 
-def emit(ocarina, endpoint, payload, quiet=False):
+def emit(ocarina, endpoint, payload, quiet=False, interactive=True):
 
     params = payload.get("params")
     if params:
@@ -160,7 +168,11 @@ def emit(ocarina, endpoint, payload, quiet=False):
         )
     else:
         if not ocarina.oauth_session:
-            ocarina.oauth_session, ocarina.oauth_token = handle_oauth(ocarina.config, oauth_scope)
+            ocarina.oauth_session, ocarina.oauth_token = handle_oauth(ocarina.config, oauth_scope, interactive=interactive)
+
+            if not ocarina.oauth_session or not ocarina.oauth_token:
+                # Looks like oauth failed, this should just trigger a 400
+                pass
 
         payload["token"] = "OAUTH"
         if request_type == "POST":

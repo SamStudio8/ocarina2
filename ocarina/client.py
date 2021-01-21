@@ -7,6 +7,7 @@ import json
 import time
 from . import util
 from . import parsers
+from . import api
 from .version import __version__
 
 import argparse
@@ -106,7 +107,16 @@ ENDPOINTS = {
 
 class Ocarina():
     def __init__(self):
+        self.oauth = True # assume oauth unless told otherwise
         self.oauth_session = None
+        self.oauth_token = None
+        self.config = None
+        self.quiet = True # assume quiet
+        self.sudo_as = None
+
+        # this is all terrible but we gotta get going
+        self.api = api.OcarinaAPI(self)
+        self.api.endpoints = ENDPOINTS 
 
 def cli():
 
@@ -429,8 +439,6 @@ X8%%S:              .8 8S888    :8.88S@:
     ocarina.oauth = args.oauth
     ocarina.sudo_as = args.sudo_as if hasattr(args, "sudo_as") else None
 
-    ocarina.oauth_session = None
-    ocarina.oauth_token = None
 
     if hasattr(args, "func"):
         metadata = {}
@@ -1261,9 +1269,21 @@ def wrap_publish_emit(ocarina, args, metadata={}, metrics={}):
     #v_args["rejected"] = False
     #if v_args["rejected_reason"]:
     #    v_args["rejected"] = True
-    j = util.emit(ocarina, ENDPOINTS["api.pag.accession.add"], v_args)
-    if j["errors"] == 0:
-        print(0, args.publish_group, j["updated"][0][2])
+
+    success, obj = ocarina.api.put_accession(
+            args.publish_group,
+            args.service,
+            args.accession,
+            args.contains,
+            args.accession2,
+            args.accession3,
+            args.public,
+            args.public_date,
+            args.submitted,
+    )
+
+    if success:
+        print(0, args.publish_group, obj["publish_group"])
     else:
         print(1, args.publish_group, '-')
 
