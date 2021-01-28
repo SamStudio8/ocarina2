@@ -73,7 +73,6 @@ ENDPOINTS = {
         },
 
         "api.pag.qc.get": "/api/v2/pag/qc/get/",
-        "api.pag.qc.get2": "/api/v2/pag/qc/get2/",
 
         "api.pag.accession.add": {
             "endpoint": "/api/v2/pag/accession/add/",
@@ -329,29 +328,13 @@ def cli():
 
     get_pag_parser.add_argument("--published-after", type=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').strftime('%Y-%m-%d'))
 
-    get_pag_parser.add_argument("--ls-files", action="store_true")
     get_pag_parser.add_argument("--ofield", nargs=3, metavar=("field", "as", "default"), action="append")
     get_pag_parser.add_argument("--odelimiter", default='\t')
     get_pag_parser.add_argument("--ffield-true", nargs=1, metavar=("field",), action="append")
 
-    get_pag_parser.add_argument("--mode")
+    get_pag_parser.add_argument("--mode", default="")
 
     get_pag_parser.set_defaults(func=wrap_get_qc)
-
-    get2_pag_parser = get_subparsers.add_parser("pagfiles", parents=[get_parser], add_help=False,
-            help="Get a list of all files for all PAGs that have passed a QC test")
-
-    get2_pag_parser.add_argument("--test-name", required=True)
-    get2_pag_parser.add_argument("--pass", action="store_true")
-    get2_pag_parser.add_argument("--fail", action="store_true")
-
-    #get2_pag_parser.add_argument("--service-name")
-    #get2_pag_parser.add_argument("--public", action="store_true")
-    #get2_pag_parser.add_argument("--private", action="store_true")
-    get2_pag_parser.add_argument("--published-after", type=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').strftime('%Y-%m-%d'))
-    get2_pag_parser.add_argument("--suppressed-after", type=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').strftime('%Y-%m-%d'))
-
-    get2_pag_parser.set_defaults(func=wrap_get_qc_files)
 
 
     get_summary_parser = get_subparsers.add_parser("summary", parents=[get_parser], add_help=False,
@@ -684,11 +667,6 @@ def wrap_get_qc_files(ocarina, args, metadata={}, metrics={}):
 
     if "get" not in j or "count" not in j["get"]:
         sys.exit(2)
-    if j["get"]["count"] >= 1:
-        for fdat in j["get"]["result"]:
-            #pag, kind, path, fhash, fsize, pag_qc = fdat
-            fdat[-1] = "PASS" if fdat[-1] else "FAIL"
-            print("\t".join([str(x) for x in fdat]))
 
 
 
@@ -721,23 +699,14 @@ def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
             state = j.get("task", {}).get("state", "UNKNOWN")
         sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
 
-    if args.ls_files:
+    if args.mode.lower() == "pagfiles":
         if "get" not in j or "count" not in j["get"]:
             sys.exit(2)
         if j["get"]["count"] >= 1:
-            for pag in j["get"]["result"]:
-                pag_is_pass = pag["is_pass"]
-                pag = pag["pag"]
-                if "Digital Resource" in pag["artifacts"]:
-                    for dra in pag["artifacts"]["Digital Resource"]:
-                        sys.stdout.write("\t".join([
-                            pag["published_name"],
-                            dra["current_kind"],
-                            dra["current_path"],
-                            dra.get("current_hash", "0"),
-                            str(dra.get("current_size", 0)),
-                            "PASS" if pag_is_pass else "FAIL",
-                        ]) + '\n')
+            for fdat in j["get"]["result"]:
+                #pag, kind, path, fhash, fsize, pag_qc = fdat
+                fdat[-1] = "PASS" if fdat[-1] else "FAIL"
+                print("\t".join([str(x) for x in fdat]))
     elif args.ofield:
         csv_w = csv.DictWriter(sys.stdout, fieldnames=[f[1] for f in args.ofield], delimiter=args.odelimiter)
         csv_w.writeheader()
