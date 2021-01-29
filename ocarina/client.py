@@ -327,6 +327,7 @@ def cli():
     get_pag_parser.add_argument("--private", action="store_true")
 
     get_pag_parser.add_argument("--published-after", type=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').strftime('%Y-%m-%d'))
+    get_pag_parser.add_argument("--suppressed-after", type=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').strftime('%Y-%m-%d'))
 
     get_pag_parser.add_argument("--ofield", nargs=3, metavar=("field", "as", "default"), action="append")
     get_pag_parser.add_argument("--odelimiter", default='\t')
