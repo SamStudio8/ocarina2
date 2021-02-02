@@ -39,45 +39,6 @@ Edit the configuration and supply the three required parameters:
 
 Alternatively, you can specify `--env` and set these configuration parameters in your environment.
 
-## Basic examples
+## Documentation
 
-### Add a biosample
-
-```
-ocarina put biosample --adm1 UK-WLS \
-                  --central-sample-id "HOOT-OCARINA-012" \
-                  --collection-date "2020-03-25" \
-                  --source-age 29 \
-                  --source-sex M
-```
-
-### Pool biosamples into a library
-
-```
-ocarina put library --library-name "BIRM-20200326-1844" \
-                --library-seq-kit "LSK109" \
-                --library-seq-protocol "LIGATION" \
-                --library-layout-config "SINGLE" \
-                --biosample HOOT-OCARINA-101 VIRAL_RNA PCR AMPLICON PROTOCOL1 PRIMERS1 \
-                --biosample HOOT-OCARINA-102 GENOMIC PCR AMPLICON PROTOCOL2 PRIMERS2
-```
-
-Or use a shortcut if all biosamples have the same library properties
-
-```
-ocarina put library --library-name "BIRM-20200326-1844" \
-                --library-seq-kit "LSK109" \
-                --library-seq-protocol "LIGATION" \
-                --library-layout-config "SINGLE" \
-                --biosamples HOOT-OCARINA-101 HOOT-OCARINA-102 \
-                --apply-all-library VIRAL_RNA PCR AMPLICON PROTOCOL1 PRIMERS1
-```
-
-### Add a sequencing run for a library
-
-```
-ocarina put sequencing --library-name BIRM-20200326-1844 \
-                   --run-name "20200409-1840_MYRUN_000000_FAK12345" \
-                   --instrument-make "OXFORD_NANOPORE" \
-                   --instrument-model "GridION"
-```
+For Ocarina command line examples, [see the new Majora documentation](https://samstudio8.github.io/majora-docs/).
