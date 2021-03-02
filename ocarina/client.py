@@ -13,6 +13,9 @@ from .version import __version__
 import argparse
 import datetime
 
+def partial_required():
+    return False if "--partial" in sys.argv or "--update" in sys.argv else True
+
 ENDPOINTS = {
         "api.artifact.biosample.add": {
             "endpoint": "/api/v2/artifact/biosample/add/",
@@ -25,7 +28,7 @@ ENDPOINTS = {
             "endpoint": "/api/v2/artifact/biosample/update/",
             "version": 2,
             "type": "POST",
-            "scope": "majora2.change_biosampleartifact majora2.change_biosamplesource majora2.change_biosourcesamplingprocess",
+            "scope": "majora2.change_biosampleartifact majora2.add_biosamplesource majora2.change_biosamplesource majora2.change_biosourcesamplingprocess",
         },
 
         "api.artifact.biosample.addempty": {
@@ -146,11 +149,11 @@ def cli():
 
     biosample_parser = subparsers.add_parser("biosample", parents=[put_parser], add_help=False,
             help="add a single biosample by providing fields via the CLI")
-    biosample_parser.add_argument("--adm1", required=True)
+    biosample_parser.add_argument("--adm1", required=partial_required())
     biosample_parser.add_argument("--central-sample-id", required=True)
     biosample_parser.add_argument("--is-surveillance", default='N', choices={"Y", "N"})
 
-    bsp_date = biosample_parser.add_mutually_exclusive_group(required=True)
+    bsp_date = biosample_parser.add_mutually_exclusive_group(required=partial_required())
     bsp_date.add_argument("--collection-date")
     bsp_date.add_argument("--received-date")
 
