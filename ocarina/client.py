@@ -140,6 +140,7 @@ def cli():
     put_parser.add_argument("-m", "--metadata", action='append', nargs=3, metavar=('tag', 'key', 'value'))
     put_parser.add_argument("--metric", action='append', nargs=3, metavar=('tag', 'key', 'value'))
     put_parser.add_argument("--sudo-as", required=False)
+    put_parser.add_argument("--partial", "--update", action='store_true')
 
     subparsers = put_parser.add_subparsers(title="actions")
 
@@ -269,15 +270,6 @@ def cli():
     publish_parser.add_argument("--submitted", action="store_true")
     #publish_parser.add_argument("--rejected-reason", required=False)
     publish_parser.set_defaults(func=wrap_publish_emit)
-
-
-    patch_parser = action_parser.add_parser("patch")
-    patch_subparsers = patch_parser.add_subparsers(title="actions")
-    patch_biosample_parser = patch_subparsers.add_parser("biosample", parents=[patch_parser], add_help=False,
-            help="update a single biosample by providing fields via the CLI")
-    patch_biosample_parser.add_argument("--central-sample-id", required=True)
-    patch_biosample_parser.add_argument("--root-biosample-source-id", required=True)
-    patch_biosample_parser.set_defaults(func=wrap_single_biosample_patch_emit)
 
 
     list_parser = action_parser.add_parser("list")
@@ -476,16 +468,11 @@ def wrap_single_biosample_emit(ocarina, args, metadata={}, metrics={}):
     payload = {"biosamples": [
         v_args,
     ]}
-    util.emit(ocarina, ENDPOINTS["api.artifact.biosample.add"], payload)
 
-def wrap_single_biosample_patch_emit(ocarina, args, metadata={}, metrics={}):
-    v_args = vars(args)
-
-    payload = {"biosamples": [{
-        "central_sample_id": args.central_sample_id,
-        "root_biosample_source_id": args.root_biosample_source_id,
-    }]}
-    util.emit(ocarina, ENDPOINTS["api.artifact.biosample.update"], payload)
+    if v_args["partial"]:
+        util.emit(ocarina, ENDPOINTS["api.artifact.biosample.update"], payload)
+    else:
+        util.emit(ocarina, ENDPOINTS["api.artifact.biosample.add"], payload)
 
 def wrap_get_biosamplev(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
