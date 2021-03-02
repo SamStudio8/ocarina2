@@ -16,6 +16,17 @@ import datetime
 def partial_required():
     return False if "--partial" in sys.argv or "--update" in sys.argv else True
 
+def prune_null(d):
+    ret_d = {}
+    for k, v in d.items():
+        if v is None:
+            continue
+        elif v == "_null_":
+            ret_d[k] = None
+        else:
+            ret_d[k] = v
+    return ret_d
+
 ENDPOINTS = {
         "api.artifact.biosample.add": {
             "endpoint": "/api/v2/artifact/biosample/add/",
@@ -468,13 +479,16 @@ def wrap_single_biosample_emit(ocarina, args, metadata={}, metrics={}):
 
     v_args["metadata"] = metadata
     v_args["metrics"] = metrics
-    payload = {"biosamples": [
-        v_args,
-    ]}
 
     if v_args["partial"]:
+        payload = {"biosamples": [
+            prune_null(v_args),
+        ]}
         util.emit(ocarina, ENDPOINTS["api.artifact.biosample.update"], payload)
     else:
+        payload = {"biosamples": [
+            v_args,
+        ]}
         util.emit(ocarina, ENDPOINTS["api.artifact.biosample.add"], payload)
 
 def wrap_get_biosamplev(ocarina, args, metadata={}, metrics={}):
