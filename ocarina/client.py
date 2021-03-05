@@ -952,8 +952,8 @@ def wrap_get_sequencing(ocarina, args, metadata={}, metrics={}):
                                 elif row[f] is False:
                                     v_ = 'N'
 
-                            #if not row[f]:
-                            #    v_ = ""
+                            if row[f] is None or row[f] == "None":
+                                v_ = ""
                             fields.append(str(v_))
 
                         if i == 0:
