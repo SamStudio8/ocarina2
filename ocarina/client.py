@@ -400,6 +400,11 @@ def cli():
 
     args = parser.parse_args()
     config = util.get_config(args.env)
+
+    if not args.partial and ("--partial" in sys.argv or "--update" in sys.argv):
+        sys.stderr.write("--partial supplied but ignored by argparse, move --partial after the subaction name\n  e.g. put biosample --partial, not put --partial biosample\n")
+        sys.exit(1)
+
     if not args.quiet:
         sys.stderr.write('''
                                  .@ 888S
