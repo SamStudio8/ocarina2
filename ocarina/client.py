@@ -928,9 +928,19 @@ def wrap_get_sequencing(ocarina, args, metadata={}, metrics={}):
                         if args.faster:
                             b = biosamples[b]
 
-                        if not b.get("adm0") and not v_args["tsv_show_dummy"]:
-                            sys.stderr.write("Skipping row: %s.%s.%s as it does not have a complete set of headers...\n" % (run, l["library_name"], b["central_sample_id"]))
-                            continue
+                        skip = False
+                        adm1 = b.get("adm1")
+                        received_date = b.get("received_date")
+                        collection_date = b.get("collection_date")
+                        if not adm1 or len(adm1) == 0:
+                            skip = True
+                        if (not received_date or len(received_date)==0) and (not collection_date or len(collection_date)==0):
+                            skip = True
+
+                        if skip:
+                            if not v_args["tsv_show_dummy"]:
+                                sys.stderr.write("Skipping row: %s.%s.%s as it does not have a complete set of headers...\n" % (run, l["library_name"], b["central_sample_id"]))
+                                continue
 
                         # New "faster" endpoint integrates the single biosample_source
                         if not args.faster:
