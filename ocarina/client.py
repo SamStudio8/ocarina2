@@ -104,6 +104,7 @@ ENDPOINTS = {
         "api.majora.summary.get": "/api/v2/majora/summary/get/",
         "api.outbound.summary.get": "/api/v2/outbound/summary/get/",
         "api.majora.task.get": "/api/v2/majora/task/get/",
+        "api.majora.task.stream": "/api/v2/majora/task/stream/",
 
         "api.majora.task.delete": "/api/v2/majora/task/delete/",
 
@@ -126,6 +127,7 @@ class Ocarina():
         self.config = None
         self.quiet = True # assume quiet
         self.sudo_as = None
+        self.stream = False
 
         # this is all terrible but we gotta get going
         self.api = api.OcarinaAPI(self)
@@ -139,6 +141,7 @@ def cli():
     parser.add_argument("--angry", help="exit if API returns errors > 0", action="store_true", default=False)
     parser.add_argument("-v", "--version", action='version', version="ocarina v%s" %  __version__)
     parser.add_argument("--oauth", help="use experimental OAuth authorization", action="store_true", default=False)
+    parser.add_argument("--stream", help="use streaming requests where appropriate", action="store_true", default=False)
 
     action_parser = parser.add_subparsers()
 
@@ -434,6 +437,7 @@ X8%%S:              .8 8S888    :8.88S@:
     ocarina.config = config
     ocarina.quiet = args.quiet
     ocarina.oauth = args.oauth
+    ocarina.stream = args.stream
     ocarina.sudo_as = args.sudo_as if hasattr(args, "sudo_as") else None
 
 
@@ -572,7 +576,7 @@ def wrap_get_summary(ocarina, args, metadata={}, metrics={}):
 
 def wrap_get_task(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-    j = util.emit(ocarina, ENDPOINTS["api.majora.task.get"], v_args)
+    status, j = ocarina.api.get_task(v_args["task_id"])
 
 def wrap_del_task(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
@@ -617,7 +621,7 @@ def wrap_get_dataview(ocarina, args, metadata={}, metrics={}):
             attempt += 1
             sys.stderr.write("[WAIT] Giving Majora a minute to finish task %s (%d)...\n" % (v_args["task_id"], attempt))
             time.sleep(60 * args.task_wait_minutes)
-            j = util.emit(ocarina, ENDPOINTS["api.majora.task.get"], v_args, quiet=True)
+            status, j = ocarina.api.get_task(v_args["task_id"])
             state = j.get("task", {}).get("state", "UNKNOWN")
         sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
 
@@ -651,7 +655,7 @@ def wrap_get_qc_files(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
 
     if args.task_id:
-        j = util.emit(ocarina, ENDPOINTS["api.majora.task.get"], v_args)
+        status, j = ocarina.api.get_task(v_args["task_id"])
         #TODO move this to part of emit
         if j.get("task", {}).get("state", "") != "SUCCESS":
             return
@@ -672,7 +676,7 @@ def wrap_get_qc_files(ocarina, args, metadata={}, metrics={}):
             attempt += 1
             sys.stderr.write("[WAIT] Giving Majora a minute to finish task %s (%d)...\n" % (v_args["task_id"], attempt))
             time.sleep(60 * args.task_wait_minutes)
-            j = util.emit(ocarina, ENDPOINTS["api.majora.task.get"], v_args, quiet=True)
+            status, j = ocarina.api.get_task(v_args["task_id"])
             state = j.get("task", {}).get("state", "UNKNOWN")
         sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
 
@@ -686,7 +690,7 @@ def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
 
     if args.task_id:
-        j = util.emit(ocarina, ENDPOINTS["api.majora.task.get"], v_args)
+        status, j = ocarina.api.get_task(v_args["task_id"])
         #TODO move this to part of emit
         if j.get("task", {}).get("state", "") != "SUCCESS":
             return
@@ -707,7 +711,7 @@ def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
             attempt += 1
             sys.stderr.write("[WAIT] Giving Majora a minute to finish task %s (%d)...\n" % (v_args["task_id"], attempt))
             time.sleep(60 * args.task_wait_minutes)
-            j = util.emit(ocarina, ENDPOINTS["api.majora.task.get"], v_args, quiet=True)
+            status, j = ocarina.api.get_task(v_args["task_id"])
             state = j.get("task", {}).get("state", "UNKNOWN")
         sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
 
@@ -824,7 +828,7 @@ def wrap_get_sequencing(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
 
     if args.task_id:
-        j = util.emit(ocarina, ENDPOINTS["api.majora.task.get"], v_args)
+        status, j = ocarina.api.get_task(v_args["task_id"])
         #TODO move this to part of emit
         if j.get("task", {}).get("state", "") != "SUCCESS":
             return
@@ -848,7 +852,7 @@ def wrap_get_sequencing(ocarina, args, metadata={}, metrics={}):
             attempt += 1
             sys.stderr.write("[WAIT] Giving Majora a minute to finish task %s (%d)...\n" % (v_args["task_id"], attempt))
             time.sleep(60 * args.task_wait_minutes)
-            j = util.emit(ocarina, ENDPOINTS["api.majora.task.get"], v_args, quiet=True)
+            status, j = ocarina.api.get_task(v_args["task_id"])
             state = j.get("task", {}).get("state", "UNKNOWN")
         sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
 

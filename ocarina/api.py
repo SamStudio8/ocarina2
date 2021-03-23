@@ -4,6 +4,25 @@ class OcarinaAPI:
     def __init__(self, ocarina):
         self.ocarina = ocarina
 
+    def response_to_user(self, j, return_payload):
+        if j["errors"] == 0:
+            status = True
+        else:
+            status = False
+
+        return (status, return_payload)
+
+    def get_task(self, task_id):
+        payload = {
+            "task_id": task_id,
+        }
+        endpoint = "api.majora.task.get"
+        if self.ocarina.stream:
+            endpoint = "api.majora.task.stream"
+        j = util.emit(self.ocarina, self.endpoints[endpoint], payload, quiet=True, interactive=False)
+        return self.response_to_user(j, j)
+
+
     def put_accession(self, publish_group, service, accession, contains=False, accession2=None, accession3=None, public=False, public_date=None, submitted=False):
         payload = {
             "publish_group": publish_group,
@@ -19,12 +38,10 @@ class OcarinaAPI:
         }
         j = util.emit(self.ocarina, self.endpoints["api.pag.accession.add"], payload, interactive=False)
         if j["errors"] == 0:
-            status = True
             updated_pag = j["updated"][0][2] # gross
         else:
-            status = False
             updated_pag = None
 
-        return (status, {
+        return self.response_to_user(j, {
             "publish_group": updated_pag,
         })

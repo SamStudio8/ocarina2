@@ -183,6 +183,7 @@ def emit(ocarina, endpoint, payload, quiet=False, interactive=True):
                         "User-Agent": "%s %s" % (payload["client_name"], payload["client_version"]),
                     },
                     json = payload,
+                    stream = ocarina.stream,
             )
         elif request_type == "GET":
             r = ocarina.oauth_session.get(ocarina.config["MAJORA_DOMAIN"] + endpoint + '/',
@@ -191,6 +192,7 @@ def emit(ocarina, endpoint, payload, quiet=False, interactive=True):
                         "User-Agent": "%s %s" % (payload["client_name"], payload["client_version"]),
                     },
                     params = params,
+                    stream = ocarina.stream,
             )
 
     if r.status_code != 200:
