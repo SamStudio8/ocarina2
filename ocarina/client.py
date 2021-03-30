@@ -651,41 +651,6 @@ def wrap_get_dataview(ocarina, args, metadata={}, metrics={}):
 
 
 
-def wrap_get_qc_files(ocarina, args, metadata={}, metrics={}):
-    v_args = vars(args)
-
-    if args.task_id:
-        status, j = ocarina.api.get_task(v_args["task_id"])
-        #TODO move this to part of emit
-        if j.get("task", {}).get("state", "") != "SUCCESS":
-            return
-    else:
-        j = util.emit(ocarina, ENDPOINTS["api.pag.qc.get2"], v_args)
-
-    #TODO sam why
-    if args.task_wait:
-        if not v_args["task_id"]:
-            try:
-                task_id = j.get("tasks", [None])[0]
-            except:
-                sys.exit(2)
-            v_args["task_id"] = task_id
-        state = "PENDING"
-        attempt = 0
-        while state == "PENDING" and attempt < args.task_wait_attempts:
-            attempt += 1
-            sys.stderr.write("[WAIT] Giving Majora a minute to finish task %s (%d)...\n" % (v_args["task_id"], attempt))
-            time.sleep(60 * args.task_wait_minutes)
-            status, j = ocarina.api.get_task(v_args["task_id"])
-            state = j.get("task", {}).get("state", "UNKNOWN")
-        sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
-
-
-    if "get" not in j or "count" not in j["get"]:
-        sys.exit(2)
-
-
-
 def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
 
