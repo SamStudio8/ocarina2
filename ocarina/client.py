@@ -719,8 +719,8 @@ def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
                             mkey = "accession.%s.%s" % (service.lower(), mkey)
                             metadata[mkey] = mvalue
                 if "qc_reports" in pag:
-                    for report in pag["qc_reports"]:
-                        metadata["qc.%s" % report["test_name"]] = True if report["is_pass"]=="True" else False
+                    for test, result in pag["qc_reports"].items():
+                        metadata["qc.%s" % test] = result
 
                 for artifact_g in pag["artifacts"]:
                     for artifact in pag["artifacts"][artifact_g]:
