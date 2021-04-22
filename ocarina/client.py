@@ -99,7 +99,12 @@ ENDPOINTS = {
         "api.process.sequencing.get": "/api/v2/process/sequencing/get/",
         "api.process.sequencing.get2": "/api/v2/process/sequencing/get2/",
 
-        "api.artifact.biosample.query.validity": "/api/v2/artifact/biosample/query/validity/",
+        "api.artifact.biosample.query.validity": {
+            "endpoint": "/api/v2/artifact/biosample/query/validity/",
+            "version": 2,
+            "type": "POST",
+            "scope": "majora2.view_biosampleartifact",
+        },
 
         "api.majora.summary.get": "/api/v2/majora/summary/get/",
         "api.outbound.summary.get": "/api/v2/outbound/summary/get/",
