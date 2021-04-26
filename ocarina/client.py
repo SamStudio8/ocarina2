@@ -70,7 +70,12 @@ ENDPOINTS = {
             "scope": "majora2.add_digitalresourceartifact majora2.change_digitalresourceartifact",
         },
 
-        "api.meta.tag.add": "/api/v2/meta/tag/add/",
+        "api.meta.tag.add": {
+            "endpoint": "/api/v2/meta/tag/add/",
+            "version": 2,
+            "type": "POST",
+            "scope": "majora2.add_majorametarecord majora2.change_majorametarecord", # technically don't need this, as its a scopeless endpoint, but need at least one scope to get through the permission window
+        },
 
         "api.meta.metric.add": {
             "endpoint": "/api/v2/meta/metric/add/",
@@ -103,7 +108,7 @@ ENDPOINTS = {
             "endpoint": "/api/v2/artifact/biosample/query/validity/",
             "version": 2,
             "type": "POST",
-            "scope": "majora2.view_biosampleartifact",
+            "scope": "majora2.view_biosampleartifact", # scopeless server side
         },
 
         "api.majora.summary.get": "/api/v2/majora/summary/get/",
