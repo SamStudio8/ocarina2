@@ -127,6 +127,13 @@ ENDPOINTS = {
             "type": "GET",
             "scope": "majora2.can_read_dataview_via_api",
         },
+
+        "api.v0.artifact.info": {
+            "endpoint": "/api/v0/artifact/info/",
+            "version": 0, # force oauth
+            "type": "GET",
+            "scope": "majora2.view_majoraartifact_info",
+        },
 }
 
 class Ocarina():
@@ -138,6 +145,7 @@ class Ocarina():
         self.quiet = True # assume quiet
         self.sudo_as = None
         self.stream = False
+        self.interactive = False
 
         # this is all terrible but we gotta get going
         self.api = api.OcarinaAPI(self)
@@ -162,6 +170,13 @@ def cli():
             help="force one or more biosamples via the CLI")
     empty_biosample_parser.add_argument("--ids", nargs='+', required=True)
     empty_biosample_parser.set_defaults(func=wrap_force_biosample_emit)
+
+    info_parser = action_parser.add_parser("info")
+    info_parser.add_argument("query")
+    info_parser.add_argument("--raw", help="Return raw JSON instead of parsing the result", action="store_true")
+    # --type DRA,BSA...
+    # --by-id --by-path --by-name
+    info_parser.set_defaults(func=wrap_get_artifact_info)
 
     put_parser = action_parser.add_parser("put")
     put_parser.add_argument("-m", "--metadata", action='append', nargs=3, metavar=('tag', 'key', 'value'))
@@ -449,6 +464,7 @@ X8%%S:              .8 8S888    :8.88S@:
     ocarina.oauth = args.oauth
     ocarina.stream = args.stream
     ocarina.sudo_as = args.sudo_as if hasattr(args, "sudo_as") else None
+    ocarina.interactive = True
 
 
     if hasattr(args, "func"):
@@ -511,6 +527,23 @@ def wrap_single_biosample_emit(ocarina, args, metadata={}, metrics={}):
             v_args,
         ]}
         util.emit(ocarina, ENDPOINTS["api.artifact.biosample.add"], payload)
+
+def wrap_get_artifact_info(ocarina, args, metadata={}, metrics={}):
+    success, json = ocarina.api.get_artifact_info(
+            args.query
+    )
+
+    if success:
+        if args.raw:
+            print(json)
+        else:
+            print("UUID %s" % json["id"])
+            print("TYPE %s" % json["kind"])
+            print("NAME %s" % json["name"])
+            print("PATH %s" % json["path"])
+            print("*")
+            for tag, value in json["metadata"].items():
+                print("META", tag, value)
 
 def wrap_get_biosamplev(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)

@@ -117,7 +117,7 @@ def oauth_grant_to_token(config, oauth_scope):
     token = oauth.fetch_token(config["MAJORA_DOMAIN"]+"o/token/", authorization_response=authorization_response, client_secret=config["CLIENT_SECRET"])
     return oauth, token
 
-def emit(ocarina, endpoint, payload, quiet=False, interactive=True):
+def emit(ocarina, endpoint, payload, quiet=False):
 
     params = payload.get("params")
     if params:
@@ -143,6 +143,7 @@ def emit(ocarina, endpoint, payload, quiet=False, interactive=True):
             angry = True
             del payload["angry"]
 
+
     payload["username"] = ocarina.config["MAJORA_USER"]
 
     oauth_scope = "majora2.temp_can_read_pags_via_api"
@@ -150,8 +151,8 @@ def emit(ocarina, endpoint, payload, quiet=False, interactive=True):
     if type(endpoint) == dict:
         if "scope" in endpoint:
             oauth_scope = endpoint["scope"]
-            if not ocarina.oauth and endpoint["version"] == 3:
-                sys.stderr.write("--oauth is required with this v3 API endpoint")
+            if not ocarina.oauth and endpoint["version"] in [0,3]:
+                sys.stderr.write("--oauth is required with experimental or v3 API endpoints")
                 sys.exit(1)
         request_type = endpoint["type"]
         endpoint = endpoint["endpoint"]
@@ -168,11 +169,12 @@ def emit(ocarina, endpoint, payload, quiet=False, interactive=True):
         )
     else:
         if not ocarina.oauth_session:
-            ocarina.oauth_session, ocarina.oauth_token = handle_oauth(ocarina.config, oauth_scope, interactive=interactive)
+            ocarina.oauth_session, ocarina.oauth_token = handle_oauth(ocarina.config, oauth_scope, interactive=ocarina.interactive)
 
             if not ocarina.oauth_session or not ocarina.oauth_token:
                 # Looks like oauth failed, this should just trigger a 400
-                pass
+                print("Unexpected OAuth Error. Try refreshing all tokens with `ocarina oauth refresh`.")
+                sys.exit(4)
 
         payload["token"] = "OAUTH"
         if request_type == "POST":

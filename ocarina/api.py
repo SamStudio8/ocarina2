@@ -19,7 +19,7 @@ class OcarinaAPI:
         endpoint = "api.majora.task.get"
         if self.ocarina.stream:
             endpoint = "api.majora.task.stream"
-        j = util.emit(self.ocarina, self.endpoints[endpoint], payload, quiet=True, interactive=False)
+        j = util.emit(self.ocarina, self.endpoints[endpoint], payload, quiet=True)
         return self.response_to_user(j, j)
 
 
@@ -36,7 +36,7 @@ class OcarinaAPI:
             "submitted": submitted,
 
         }
-        j = util.emit(self.ocarina, self.endpoints["api.pag.accession.add"], payload, interactive=False)
+        j = util.emit(self.ocarina, self.endpoints["api.pag.accession.add"], payload)
         if j["errors"] == 0:
             updated_pag = j["updated"][0][2] # gross
         else:
@@ -45,3 +45,12 @@ class OcarinaAPI:
         return self.response_to_user(j, {
             "publish_group": updated_pag,
         })
+
+    def get_artifact_info(self, query):
+        payload = {
+            "params": {
+                "q": query,
+            }
+        }
+        j = util.emit(self.ocarina, self.endpoints["api.v0.artifact.info"], payload)
+        return self.response_to_user(j, j["info"])
