@@ -36,6 +36,10 @@ Edit the configuration and supply the three required parameters:
 * `MAJORA_DOMAIN` the base URL of the Majora instance to send requests to
 * `MAJORA_USER` your username on Majora
 * `MAJORA_TOKEN` your API key, you can get this from your profile
+* `CLIENT_ID` your OAuth client ID
+* `CLIENT_SECRET` your OAuth client secret
+* `OCARINA_QUIET` set to anything non-zero (`0`) to suppress all non-output information
+* `OCARINA_NO_BANNER` set to anything non-zero (`0`) to suppress the large welcoming ocarina
 
 Alternatively, you can specify `--env` and set these configuration parameters in your environment.
 
