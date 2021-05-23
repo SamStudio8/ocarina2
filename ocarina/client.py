@@ -676,13 +676,30 @@ def wrap_get_dataview(ocarina, args, metadata={}, metrics={}):
                 keys = set([])
                 # collect all possible keys naively
                 for row in json_data:
-                    keys.update(row.keys())
+                    for key in row.keys():
+                        # Dip in one level
+                        if isinstance(row[key], dict):
+                            for subkey, value in row[key].items():
+                                mkey = "%s.%s" % (key, subkey)
+                                keys.add(mkey)
+                        else:
+                            keys.add(key)
 
                 # iterate and dump
                 csv_w = csv.DictWriter(out_f, fieldnames=keys, delimiter=args.output_table_delimiter)
                 csv_w.writeheader()
+
                 for row in json_data:
-                    csv_w.writerow(row)
+                    out_row = {}
+                    for key in row.keys():
+                        if isinstance(row[key], dict):
+                            for subkey, value in row[key].items():
+                                mkey = "%s.%s" % (key, subkey)
+                                out_row[mkey] = value
+                        else:
+                            out_row[key] = row[key]
+
+                    csv_w.writerow(out_row)
             else:
                 # Just dump to JSON to file
                 json.dump(json_data, out_f)

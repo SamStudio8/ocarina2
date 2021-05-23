@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.31.1 2021-05-23
+## 0.39.2 2021-05-24
+### Changed
+* `get dataview --output-table` now handles dataviews with nested data, one level deeper
+
+### Fixed
+* Fixed incorrectly documented version number for last release in CHANGELOG, incorrectly referred to as 0.31.1 instead of 0.39.1
+
+## 0.39.1 2021-05-23
 ### Added
 * `OCARINA_QUIET` config option (supported both by `--env` and `~/.ocarina` JSON) can be set to non-zero (`0`) to suppress *all* non-output messages without `--quiet`
 * `--no-banner` command line option suppresses the welcoming ocarina banner
