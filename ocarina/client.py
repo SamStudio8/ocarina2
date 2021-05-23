@@ -154,7 +154,8 @@ class Ocarina():
 def cli():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-q", "--quiet", help="suppress the large welcoming ocarina", action="store_true")
+    parser.add_argument("-q", "--quiet", help="suppress everything", action="store_true", default=False)
+    parser.add_argument("--no-banner", help="suppress the large welcoming ocarina", action="store_true")
     parser.add_argument("--env", help="use env vars instead of ~/.ocarina", action="store_true")
     parser.add_argument("--angry", help="exit if API returns errors > 0", action="store_true", default=False)
     parser.add_argument("-v", "--version", action='version', version="ocarina v%s" %  __version__)
@@ -434,7 +435,7 @@ def cli():
             sys.stderr.write("--partial supplied but ignored by argparse, move --partial after the subaction name\n  e.g. put biosample --partial, not put --partial biosample\n")
             sys.exit(1)
 
-    if not args.quiet:
+    if not (args.quiet or args.no_banner or config.get("OCARINA_NO_BANNER", 0) != 0 or config.get("OCARINA_QUIET", 0) != 0):
         sys.stderr.write('''
                                  .@ 888S
                             ;@S8888:8%tX
@@ -460,7 +461,7 @@ X8%%S:              .8 8S888    :8.88S@:
 
     ocarina = Ocarina()
     ocarina.config = config
-    ocarina.quiet = args.quiet
+    ocarina.quiet = True if args.quiet or (config.get("OCARINA_QUIET", 0) != 0) else False
     ocarina.oauth = args.oauth
     ocarina.stream = args.stream
     ocarina.sudo_as = args.sudo_as if hasattr(args, "sudo_as") else None
@@ -542,8 +543,8 @@ def wrap_get_artifact_info(ocarina, args, metadata={}, metrics={}):
             print("NAME %s" % json["name"])
             print("PATH %s" % json["path"])
             print("*")
-            for tag, value in json["metadata"].items():
-                print("META", tag, value)
+            for tag in sorted(json["metadata"]):
+                print("META", tag, json["metadata"][tag])
 
 def wrap_get_biosamplev(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)

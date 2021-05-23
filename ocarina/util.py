@@ -20,7 +20,7 @@ def get_config(env=False):
                 return config
         else:
             sys.stderr.write('''No configuration file found.\nCopy the command from below to initialise,\nthen edit the file and fill in the configration keys.\n''')
-            sys.stderr.write('''echo '{"MAJORA_DOMAIN": "https:\\...\", "MAJORA_USER": "", "MAJORA_TOKEN": ""}' > ~/.ocarina\n''')
+            sys.stderr.write('''echo '{"MAJORA_DOMAIN": "https:\\...\", "MAJORA_USER": "", "MAJORA_TOKEN": "", "CLIENT_ID": "", "CLIENT_SECRET": "", "OCARINA_NO_BANNER": 0, "OCARINA_QUIET": 0}' > ~/.ocarina\n''')
             sys.exit(1)
     else:
         config = {
@@ -29,6 +29,8 @@ def get_config(env=False):
             "MAJORA_TOKEN": os.getenv("MAJORA_TOKEN"),
             "CLIENT_ID": os.getenv("MAJORA_CLIENT_ID"),
             "CLIENT_SECRET": os.getenv("MAJORA_CLIENT_SECRET"),
+            "OCARINA_NO_BANNER": os.getenv("OCARINA_NO_BANNER", 0),
+            "OCARINA_QUIET": os.getenv("OCARINA_QUIET", 0),
         }
         if None in config.values():
             sys.stderr.write('''MAJORA_DOMAIN, MAJORA_USER, MAJORA_TOKEN must be set in your environment.\n''')
