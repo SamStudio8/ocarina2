@@ -31,7 +31,7 @@ pip install git+https://github.com/samstudio8/ocarina.git
 
 ## Configuration
 On first run, `ocarina` will give you a command to generate the config file.
-Edit the configuration and supply to proive the required parameters:
+Edit the configuration and supply to provide the required parameters:
 
 * `MAJORA_DOMAIN` the base URL of the Majora instance to send requests to
 * `MAJORA_USER` your username on Majora
