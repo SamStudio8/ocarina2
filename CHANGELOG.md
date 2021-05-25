@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.40.0 2021-05-25
+### Changed
+* `ocarina empty biosample` now has two modes:
+    * Existing `--ids hoot meow honk` mode allows one or more biosample artifacts named `central_sample_id` to be forced into existence, unchanged for backward compatability
+    * `--central-sample-id hoot --sender-sample-id secret_hoot` allows one biosample named `central_sample_id` with its `sender_sample_id` to be forced into existence
+
 ## 0.39.2 2021-05-24
 ### Changed
 * `get dataview --output-table` now handles dataviews with nested data, one level deeper

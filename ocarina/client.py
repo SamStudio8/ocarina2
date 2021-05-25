@@ -169,7 +169,12 @@ def cli():
     subparsers = empty_parser.add_subparsers(title="artifact")
     empty_biosample_parser = subparsers.add_parser("biosample", parents=[empty_parser], add_help=False,
             help="force one or more biosamples via the CLI")
-    empty_biosample_parser.add_argument("--ids", nargs='+', required=True)
+
+    single_or_multi_empty = empty_biosample_parser.add_mutually_exclusive_group(required=True)
+    single_or_multi_empty.add_argument("--ids", nargs='+')
+
+    single_or_multi_empty.add_argument("--central-sample-id")
+    empty_biosample_parser.add_argument("--sender-sample-id", "--local-sample-id")
     empty_biosample_parser.set_defaults(func=wrap_force_biosample_emit)
 
     info_parser = action_parser.add_parser("info")
@@ -508,7 +513,15 @@ X8%%S:              .8 8S888    :8.88S@:
 
 def wrap_force_biosample_emit(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-    payload = {"biosamples": v_args["ids"]}
+
+    if v_args.get("ids"):
+        sid = v_args.get("sender_sample_id")
+        if sid:
+            print("Cannot provide --sender-sample-id with --ids")
+            sys.exit(1)
+        payload = {"biosamples": v_args["ids"]}
+    else:
+        payload = {"biosamples": { v_args["central_sample_id"] : { "sender_sample_id": v_args["sender_sample_id"] }}}
     util.emit(ocarina, ENDPOINTS["api.artifact.biosample.addempty"], payload)
 
 def wrap_single_biosample_emit(ocarina, args, metadata={}, metrics={}):
