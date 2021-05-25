@@ -521,7 +521,9 @@ def wrap_force_biosample_emit(ocarina, args, metadata={}, metrics={}):
             sys.exit(1)
         payload = {"biosamples": v_args["ids"]}
     else:
-        payload = {"biosamples": [ v_args["central_sample_id"] : { "sender_sample_id": v_args["sender_sample_id"] } ]}
+        payload = {"biosamples": [
+            { "central_sample_id": v_args["central_sample_id"], "sender_sample_id": v_args["sender_sample_id"] },
+        ]}
     util.emit(ocarina, ENDPOINTS["api.artifact.biosample.addempty"], payload)
 
 def wrap_single_biosample_emit(ocarina, args, metadata={}, metrics={}):
