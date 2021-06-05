@@ -554,9 +554,6 @@ def wrap_get_artifact_info(ocarina, args, metadata={}, metrics={}):
             args.query
     )
 
-    console = Console
-    table = Table(show_header=False)
-
     if success:
         if args.raw:
             print(json)
