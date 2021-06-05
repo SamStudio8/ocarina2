@@ -9,6 +9,7 @@ requirements = [
     "colorama",
     "tabulate",
     "requests_oauthlib",
+    "rich",
 ]
 
 test_requirements = [

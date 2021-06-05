@@ -2,16 +2,20 @@ import re
 import os
 import sys
 import csv
-
 import json
 import time
+import argparse
+import datetime
+
+from rich import box
+from rich.console import Console
+from rich.table import Table
+
 from . import util
 from . import parsers
 from . import api
 from .version import __version__
 
-import argparse
-import datetime
 
 def partial_required():
     return False if "--partial" in sys.argv or "--update" in sys.argv else True
@@ -161,6 +165,7 @@ def cli():
     parser.add_argument("-v", "--version", action='version', version="ocarina v%s" %  __version__)
     parser.add_argument("--oauth", help="use experimental OAuth authorization", action="store_true", default=False)
     parser.add_argument("--stream", help="use streaming requests where appropriate", action="store_true", default=False)
+    parser.add_argument("--boring", help="suppress `rich` printing in favour of dull boring printing", action="store_true", default=False)
 
     action_parser = parser.add_subparsers()
 
@@ -549,17 +554,43 @@ def wrap_get_artifact_info(ocarina, args, metadata={}, metrics={}):
             args.query
     )
 
+    console = Console
+    table = Table(show_header=False)
+
     if success:
         if args.raw:
             print(json)
         else:
-            print("UUID %s" % json["id"])
-            print("TYPE %s" % json["kind"])
-            print("NAME %s" % json["name"])
-            print("PATH %s" % json["path"])
-            print("*")
-            for tag in sorted(json["metadata"]):
-                print("META", tag, json["metadata"][tag])
+            if args.boring:
+                print("UUID %s" % json["id"])
+                print("TYPE %s" % json["kind"])
+                print("NAME %s" % json["name"])
+                print("PATH %s" % json["path"])
+                print("*")
+                for tag in sorted(json["metadata"]):
+                    print("META", tag, json["metadata"][tag])
+
+            else:
+                console = Console()
+                table = Table(show_header=False, box=box.MINIMAL)
+                table.add_column("k", width=4, style="bold")
+                table.add_column("v")
+
+                table.add_row("UUID", "[bold magenta]%s[/]" % json["id"])
+                table.add_row("TYPE", json["kind"])
+                table.add_row("NAME", json["name"])
+                table.add_row("PATH", json["path"])
+                console.print(table)
+
+                # Metadata
+                table = Table(show_header=False, box=box.MINIMAL)
+                table.add_column("k", width=4, style="bold dim")
+                table.add_column("mk", style="bold")
+                table.add_column("mv")
+                for tag in sorted(json["metadata"]):
+                    table.add_row("META", tag, json["metadata"][tag])
+                console.print(table)
+
 
 def wrap_get_biosamplev(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
