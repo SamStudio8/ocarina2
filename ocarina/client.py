@@ -104,7 +104,13 @@ ENDPOINTS = {
             "scope": "majora2.add_temporaryaccessionrecord majora2.change_temporaryaccessionrecord",
         },
 
-        "api.artifact.biosample.get": "/api/v2/artifact/biosample/get/",
+        "api.artifact.biosample.get": {
+            "endpoint": "/api/v2/artifact/biosample/get/",
+            "version": 2,
+            "type": "POST",
+            "scope": "majora2.view_biosampleartifact",
+        },
+
         "api.process.sequencing.get": "/api/v2/process/sequencing/get/",
         "api.process.sequencing.get2": "/api/v2/process/sequencing/get2/",
 
