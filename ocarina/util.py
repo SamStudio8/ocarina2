@@ -170,13 +170,13 @@ def emit(ocarina, endpoint, payload, quiet=False):
                 json = payload,
         )
     else:
-        if not ocarina.oauth_session:
-            ocarina.oauth_session, ocarina.oauth_token = handle_oauth(ocarina.config, oauth_scope, interactive=ocarina.interactive)
+        # Always get a new session
+        ocarina.oauth_session, ocarina.oauth_token = handle_oauth(ocarina.config, oauth_scope, interactive=ocarina.interactive)
 
-            if not ocarina.oauth_session or not ocarina.oauth_token:
-                # Looks like oauth failed, this should just trigger a 400
-                print("Unexpected OAuth Error. Try refreshing all tokens with `ocarina oauth refresh`.")
-                sys.exit(4)
+        if not ocarina.oauth_session or not ocarina.oauth_token:
+            # Looks like oauth failed, this should just trigger a 400
+            print("Unexpected OAuth Error. Try refreshing all tokens with `ocarina oauth refresh`.")
+            sys.exit(4)
 
         payload["token"] = "OAUTH"
         if request_type == "POST":
