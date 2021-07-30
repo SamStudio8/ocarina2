@@ -148,11 +148,11 @@ def emit(ocarina, endpoint, payload, quiet=False):
 
     payload["username"] = ocarina.config["MAJORA_USER"]
 
-    oauth_scope = "majora2.temp_can_read_pags_via_api"
     request_type = "POST"
     if type(endpoint) == dict:
+        # OAuth and v3 endpoints are defined with a dict so we can catch them here
         if "scope" in endpoint:
-            oauth_scope = endpoint["scope"]
+            ocarina.oauth_scope = endpoint["scope"] # store the last scope for polling tasks to access later
             if not ocarina.oauth and endpoint["version"] in [0,3]:
                 sys.stderr.write("--oauth is required with experimental or v3 API endpoints")
                 sys.exit(1)
@@ -160,6 +160,7 @@ def emit(ocarina, endpoint, payload, quiet=False):
         endpoint = endpoint["endpoint"]
 
     if not ocarina.oauth:
+        # Old school non-OAuth and v2 APIs POST here
         payload["token"] = ocarina.config["MAJORA_TOKEN"]
         r = requests.post(ocarina.config["MAJORA_DOMAIN"] + endpoint + '/',
                 headers = {
@@ -170,13 +171,14 @@ def emit(ocarina, endpoint, payload, quiet=False):
                 json = payload,
         )
     else:
-        if not ocarina.oauth_session:
-            ocarina.oauth_session, ocarina.oauth_token = handle_oauth(ocarina.config, oauth_scope, interactive=ocarina.interactive)
+        # OAuth and v3 endpoints drop to here
+        # Always refresh the session to ensure a token change does not disrupt polling tasks
+        ocarina.oauth_session, ocarina.oauth_token = handle_oauth(ocarina.config, ocarina.oauth_scope, interactive=ocarina.interactive)
 
-            if not ocarina.oauth_session or not ocarina.oauth_token:
-                # Looks like oauth failed, this should just trigger a 400
-                print("Unexpected OAuth Error. Try refreshing all tokens with `ocarina oauth refresh`.")
-                sys.exit(4)
+        if not ocarina.oauth_session or not ocarina.oauth_token:
+            # Looks like oauth failed, this should just trigger a 400
+            print("Unexpected OAuth Error. Try refreshing all tokens with `ocarina oauth refresh`.")
+            sys.exit(4)
 
         payload["token"] = "OAUTH"
         if request_type == "POST":

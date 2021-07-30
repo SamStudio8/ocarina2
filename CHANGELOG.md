@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.41.3 2021-07-30
+### Fixed
+* Ocarina will reload OAuth2 tokens from disk before each request to reduce the likelihood of polling queries from failing
+
 ## 0.41.2 2021-06-11
 ### Changed
 * `get biosample` subcommand now supports OAuth using `majora2.view_biosampleartifact` scope

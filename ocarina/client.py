@@ -150,6 +150,7 @@ class Ocarina():
     def __init__(self):
         self.oauth = True # assume oauth unless told otherwise
         self.oauth_session = None
+        self.oauth_scope = None # hold the current scope
         self.oauth_token = None
         self.config = None
         self.quiet = True # assume quiet
