@@ -95,7 +95,12 @@ ENDPOINTS = {
             "scope": "majora2.add_pagqualityreport majora2.change_pagqualityreport",
         },
 
-        "api.pag.qc.get": "/api/v2/pag/qc/get/",
+        "api.pag.qc.get": {
+            "endpoint": "/api/v2/pag/qc/get/",
+            "version": 2,
+            "type": "POST",
+            "scope": "majora2.temp_can_read_pags_via_api",
+        },
 
         "api.pag.accession.add": {
             "endpoint": "/api/v2/pag/accession/add/",

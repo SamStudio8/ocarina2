@@ -4,9 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.41.3 2021-07-30
+## 0.41.4 2021-07-30
 ### Fixed
 * Ocarina will reload OAuth2 tokens from disk before each request to reduce the likelihood of polling queries from failing
+### Changed
+* `get pag` has a configuration stanza to correctly support OAuth with `temp_can_read_pags_via_api` scope
 
 ## 0.41.2 2021-06-11
 ### Changed
