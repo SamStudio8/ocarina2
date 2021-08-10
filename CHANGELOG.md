@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## 0.42.0 2021-08-10
 ### Changed
 * Changed exit codes to cover more cases using codes recommended by `sysexits`
+### Fixed
+* Error message and exit code returned in the case where the `.ocarina` or `.ocarina-tokens` JSON is malformed
 
 ## 0.41.4 2021-07-30
 ### Fixed

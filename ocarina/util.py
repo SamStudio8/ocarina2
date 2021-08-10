@@ -16,8 +16,12 @@ def get_config(env=False):
         config_path = os.path.expanduser("~/.ocarina")
         if os.path.exists(config_path):
             with open(config_path) as config_fh:
-                config = json.load(config_fh)
-                return config
+                try:
+                    config = json.load(config_fh)
+                    return config
+                except json.decoder.JSONDecodeError:
+                    sys.stderr.write("%s does not appear to be valid JSON" % config_path)
+                    sys.exit(78) #EX_CONFIG
         else:
             sys.stderr.write('''No configuration file found.\nCopy the command from below to initialise,\nthen edit the file and fill in the configration keys.\n''')
             sys.stderr.write('''echo '{"MAJORA_DOMAIN": "https:\\...\", "MAJORA_USER": "", "MAJORA_TOKEN": "", "CLIENT_ID": "", "CLIENT_SECRET": "", "OCARINA_NO_BANNER": 0, "OCARINA_QUIET": 0}' > ~/.ocarina\n''')
@@ -41,8 +45,12 @@ def oauth_load_tokens():
     config_path = os.path.expanduser("~/.ocarina-tokens")
     if os.path.exists(config_path):
         with open(config_path) as config_fh:
-            config = json.load(config_fh)
-            return config
+            try:
+                config = json.load(config_fh)
+                return config
+            except json.decoder.JSONDecodeError:
+                sys.stderr.write("%s does not appear to be valid JSON" % config_path)
+                sys.exit(78) #EX_CONFIG
     else:
         return {}
 
