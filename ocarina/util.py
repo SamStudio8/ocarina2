@@ -21,7 +21,7 @@ def get_config(env=False):
         else:
             sys.stderr.write('''No configuration file found.\nCopy the command from below to initialise,\nthen edit the file and fill in the configration keys.\n''')
             sys.stderr.write('''echo '{"MAJORA_DOMAIN": "https:\\...\", "MAJORA_USER": "", "MAJORA_TOKEN": "", "CLIENT_ID": "", "CLIENT_SECRET": "", "OCARINA_NO_BANNER": 0, "OCARINA_QUIET": 0}' > ~/.ocarina\n''')
-            sys.exit(1)
+            sys.exit(78) #EX_CONFIG
     else:
         config = {
             "MAJORA_DOMAIN": os.getenv("MAJORA_DOMAIN"),
@@ -34,7 +34,7 @@ def get_config(env=False):
         }
         if None in config.values():
             sys.stderr.write('''MAJORA_DOMAIN, MAJORA_USER, MAJORA_TOKEN must be set in your environment.\n''')
-            sys.exit(1)
+            sys.exit(78) #EX_CONFIG
         return config
 
 def oauth_load_tokens():
@@ -111,7 +111,7 @@ def oauth_grant_to_token(config, oauth_scope):
     while not authorization_response.startswith(config["MAJORA_DOMAIN"]):
         if attempt == 4:
             print("Giving up on OAuth authentication and aborting. Try again later.\n")
-            sys.exit(1)
+            sys.exit(75) #EX_TEMPFAIL
         elif attempt > 1:
             print("***\nSorry, your response doesn't appear to start with the address of the callback.\nPlease paste the entire URL for the authorization page as seen in your browser bar.\n***\n")
         authorization_response = input('Enter the full callback URL as seen in your browser window\n')
@@ -155,7 +155,7 @@ def emit(ocarina, endpoint, payload, quiet=False):
             ocarina.oauth_scope = endpoint["scope"] # store the last scope for polling tasks to access later
             if not ocarina.oauth and endpoint["version"] in [0,3]:
                 sys.stderr.write("--oauth is required with experimental or v3 API endpoints")
-                sys.exit(1)
+                sys.exit(64) #EX_USAGE
         request_type = endpoint["type"]
         endpoint = endpoint["endpoint"]
 
@@ -178,7 +178,7 @@ def emit(ocarina, endpoint, payload, quiet=False):
         if not ocarina.oauth_session or not ocarina.oauth_token:
             # Looks like oauth failed, this should just trigger a 400
             print("Unexpected OAuth Error. Try refreshing all tokens with `ocarina oauth refresh`.")
-            sys.exit(4)
+            sys.exit(75) #EX_TEMPFAIL
 
         payload["token"] = "OAUTH"
         if request_type == "POST":
@@ -208,7 +208,19 @@ def emit(ocarina, endpoint, payload, quiet=False):
         sys.stderr.write("\nResponse" + "="*(80-len("Request ")) + '\n')
         sys.stderr.write("STATUS CODE %d\n" % r.status_code)
         sys.stderr.write(r.text + '\n')
-        sys.exit(2)
+
+        if r.status_code == 400 or r.status_code == 403:
+            # Bad request 400 or fobidden 403
+            sys.exit(77) #EX_NOPERM
+        elif r.status_code == 500:
+            # Server error 500
+            sys.exit(69) #EX_UNAVAILABLE
+        elif r.status_code == 429 or r.status_code == 503:
+            # Too many reqs 429 or unavailable 503
+            sys.exit(75) #EX_TEMPFAIL
+        else:
+            # Otherwise assume we fucked it and issue general 70
+            sys.exit(70) #EX_SOFTWARE
 
     if not quiet:
         sys.stderr.write("Request" + "="*(80-len("Request ")) + '\n')
@@ -221,10 +233,10 @@ def emit(ocarina, endpoint, payload, quiet=False):
     try:
         ret_json = r.json()
     except:
-        sys.exit(3)
+        sys.exit(69) #EX_UNAVAILABLE
 
     if ret_json["errors"] > 0 and angry:
-        sys.exit(1)
+        sys.exit(1) #EX_GENERAL
 
     return r.json()
 

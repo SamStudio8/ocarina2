@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.42.0 2021-08-10
+### Changed
+* Changed exit codes to cover more cases using codes recommended by `sysexits`
+
 ## 0.41.4 2021-07-30
 ### Fixed
 * Ocarina will reload OAuth2 tokens from disk before each request to reduce the likelihood of polling queries from failing

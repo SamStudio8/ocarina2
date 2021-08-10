@@ -455,7 +455,7 @@ def cli():
     if "--partial" in sys.argv or "--update" in sys.argv:
         if not hasattr(args, "partial") or not args.partial:
             sys.stderr.write("--partial supplied but ignored by argparse, move --partial after the subaction name\n  e.g. put biosample --partial, not put --partial biosample\n")
-            sys.exit(1)
+            sys.exit(64) #EX_USAGE
 
     if not (args.quiet or args.no_banner or config.get("OCARINA_NO_BANNER", 0) != 0 or config.get("OCARINA_QUIET", 0) != 0):
         sys.stderr.write('''
@@ -535,7 +535,7 @@ def wrap_force_biosample_emit(ocarina, args, metadata={}, metrics={}):
         sid = v_args.get("sender_sample_id")
         if sid:
             print("Cannot provide --sender-sample-id with --ids")
-            sys.exit(1)
+            sys.exit(64) #EX_USAGE
         payload = {"biosamples": v_args["ids"]}
     else:
         payload = {"biosamples": [
@@ -712,7 +712,8 @@ def wrap_get_dataview(ocarina, args, metadata={}, metrics={}):
             try:
                 task_id = j.get("tasks", [None])[0]
             except:
-                sys.exit(2)
+                # Bad reply
+                sys.exit(69) #EX_UNAVAILABLE
             v_args["task_id"] = task_id
         state = "PENDING"
         attempt = 0
@@ -760,7 +761,7 @@ def wrap_get_dataview(ocarina, args, metadata={}, metrics={}):
                 json.dump(json_data, out_f)
         else:
             sys.stderr.write("No data returned.\n")
-            sys.exit(3)
+            sys.exit(66) #EX_NOINPUT
 
         if args.output != "-":
             out_f.close()
@@ -784,7 +785,8 @@ def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
             try:
                 task_id = j.get("tasks", [None])[0]
             except:
-                sys.exit(2)
+                # Bad reply
+                sys.exit(69) #EX_UNAVAILABLE
             v_args["task_id"] = task_id
         state = "PENDING"
         attempt = 0
@@ -798,7 +800,8 @@ def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
 
     if args.mode.lower() == "pagfiles":
         if "get" not in j or "count" not in j["get"]:
-            sys.exit(2)
+            # Bad reply
+            sys.exit(69) #EX_UNAVAILABLE
         if j["get"]["count"] >= 1:
             for fdat in j["get"]["result"]:
                 #pag, kind, path, fhash, fsize, pag_qc = fdat
@@ -809,7 +812,8 @@ def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
         csv_w.writeheader()
         skipped = 0
         if "get" not in j or "count" not in j["get"]:
-            sys.exit(2)
+            # Bad reply
+            sys.exit(69) #EX_UNAVAILABLE
         if j["get"]["count"] >= 1:
             for pag in j["get"]["result"]:
                 # Flatten the PAG to unique distinguished objects
@@ -925,7 +929,8 @@ def wrap_get_sequencing(ocarina, args, metadata={}, metrics={}):
             try:
                 task_id = j.get("tasks", [None])[0]
             except:
-                sys.exit(2)
+                # Bad reply
+                sys.exit(69) #EX_UNAVAILABLE
             v_args["task_id"] = task_id
         state = "PENDING"
         attempt = 0
@@ -938,9 +943,11 @@ def wrap_get_sequencing(ocarina, args, metadata={}, metrics={}):
         sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
 
     if "get" not in j or "count" not in j["get"]:
-        sys.exit(2)
+        # Bad reply
+        sys.exit(69) #EX_UNAVAILABLE
     elif j["get"]["count"] == 0:
-        sys.exit(3)
+        # No data in reply
+        sys.exit(66) #EX_NOINPUT
     if j["get"]["count"] >= 1 and v_args["tsv"]:
         i = 0
         header = None
@@ -1111,7 +1118,7 @@ def wrap_library_emit(ocarina, args, metadata={}, metrics={}):
     elif args.biosamples:
         if not args.apply_all_library:
             print("Use --apply-all-library with --biosamples")
-            sys.exit(2)
+            sys.exit(64) #EX_USAGE
 
         submit_biosamples = []
         for entry in args.biosamples:
@@ -1137,10 +1144,10 @@ def wrap_digitalresource_emit(ocarina, args, metadata={}, metrics={}):
     path = os.path.abspath(v_args["path"])
     if not os.path.exists(path):
         print("Path does not exist")
-        sys.exit(2)
+        sys.exit(65) #EX_DATAERR
     if not os.path.isfile(path):
         print("Path does not appear to be a file")
-        sys.exit(2)
+        sys.exit(65) #EX_DATAERR
 
     resource_hash = util.hashfile(path, force_hash=True)
     resource_size = os.path.getsize(path)
@@ -1160,7 +1167,7 @@ def wrap_digitalresource_emit(ocarina, args, metadata={}, metrics={}):
         extension = song.extension
     if warnings_found and not args.i_have_bad_files:
         print("[FAIL] Problems with your file were detected. If you don't care, run this command again with --i-have-bad-files. I'll know it was you, though.")
-        sys.exit(3)
+        sys.exit(65) #EX_DATAERR
 
     path = path.split(os.path.sep)
     if not args.full_path:
