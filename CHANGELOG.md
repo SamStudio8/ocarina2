@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.42.0 2021-08-10
+## 0.43.0 2021-08-11
+### Changed
+* `pag suppress` has a configuration stanza to correctly support OAuth with `can_suppress_pags_via_api` scope
+* `get summary` and `get outbound-summary` have configuration stanzas to correctly support scopeless OAuth
+
+## 0.42.1 2021-08-10
 ### Changed
 * Changed exit codes to cover more cases using codes recommended by `sysexits`
 ### Fixed

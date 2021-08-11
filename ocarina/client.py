@@ -126,15 +126,33 @@ ENDPOINTS = {
             "scope": "majora2.view_biosampleartifact", # scopeless server side
         },
 
-        "api.majora.summary.get": "/api/v2/majora/summary/get/",
-        "api.outbound.summary.get": "/api/v2/outbound/summary/get/",
+        "api.majora.summary.get": {
+            "endpoint": "/api/v2/majora/summary/get/",
+            "version": 2,
+            "type": "POST",
+            "scope": "", # scopeless server side
+        },
+
+        "api.outbound.summary.get": {
+            "endpoint": "/api/v2/outbound/summary/get/",
+            "version": 2,
+            "type": "POST",
+            "scope": "", # scopeless server side
+        },
+
         "api.majora.task.get": "/api/v2/majora/task/get/",
         "api.majora.task.stream": "/api/v2/majora/task/stream/",
 
         "api.majora.task.delete": "/api/v2/majora/task/delete/",
 
         "api.group.mag.get": "/api/v2/group/mag/get/",
-        "api.group.pag.suppress": "/api/v2/group/pag/suppress/",
+
+        "api.group.pag.suppress": {
+            "endpoint": "/api/v2/group/pag/suppress/",
+            "version": 2,
+            "type": "POST",
+            "scope": "majora2.can_suppress_pags_via_api",
+        },
 
         "api.v3.majora.mdv.get": {
             "endpoint": "/api/v3/mdv/",
