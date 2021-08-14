@@ -116,8 +116,19 @@ ENDPOINTS = {
             "scope": "majora2.view_biosampleartifact",
         },
 
-        "api.process.sequencing.get": "/api/v2/process/sequencing/get/",
-        "api.process.sequencing.get2": "/api/v2/process/sequencing/get2/",
+        "api.process.sequencing.get": {
+            "endpoint": "/api/v2/process/sequencing/get/",
+            "version": 2,
+            "type": "POST",
+            "scope": "majora2.view_biosampleartifact", # can view biosample data (need a version without biosamples)
+        },
+
+        "api.process.sequencing.get2": {
+            "endpoint": "/api/v2/process/sequencing/get2/",
+            "version": 2,
+            "type": "POST",
+            "scope": "majora2.view_biosampleartifact", # can view biosample data (need a version without biosamples)
+        },
 
         "api.artifact.biosample.query.validity": {
             "endpoint": "/api/v2/artifact/biosample/query/validity/",
@@ -140,7 +151,13 @@ ENDPOINTS = {
             "scope": "", # scopeless server side
         },
 
-        "api.majora.task.get": "/api/v2/majora/task/get/",
+        "api.majora.task.get": {
+            "endpoint": "/api/v2/majora/task/get/",
+            "version": 2,
+            "type": "POST",
+            "scope": "", # scopeless server side
+        },
+
         "api.majora.task.stream": "/api/v2/majora/task/stream/",
 
         "api.majora.task.delete": "/api/v2/majora/task/delete/",
@@ -715,106 +732,105 @@ def wrap_get_dataview(ocarina, args, metadata={}, metrics={}):
     my_args = {}
     my_args["params"] = { "mdv": args.mdv }
 
-    j = util.emit(ocarina, ENDPOINTS["api.v3.majora.mdv.get"], my_args)
+    if args.output == "-":
+        out_f = sys.stdout
+    elif args.output:
+        out_f = open(args.output, 'w')
 
-    #TODO sam why
-    # why havent i just abstracted this now ffs
-    if args.task_wait:
+    if not args.task_id:
+        j = util.emit(ocarina, ENDPOINTS["api.v3.majora.mdv.get"], my_args)
+    else:
+        j = {}
 
-        if args.output == "-":
-            out_f = sys.stdout
+    status, j =_wait_for_task(ocarina, v_args, j, task_wait=args.task_wait)
+
+    json_data = j.get("data")
+    if json_data:
+        # try to flatten the non-object keys
+        if args.output_table:
+            keys = set([])
+            # collect all possible keys naively
+            for row in json_data:
+                for key in row.keys():
+                    # Dip in one level
+                    if isinstance(row[key], dict):
+                        for subkey, value in row[key].items():
+                            mkey = "%s.%s" % (key, subkey)
+                            keys.add(mkey)
+                    else:
+                        keys.add(key)
+
+            # iterate and dump
+            csv_w = csv.DictWriter(out_f, fieldnames=keys, delimiter=args.output_table_delimiter)
+            csv_w.writeheader()
+
+            for row in json_data:
+                out_row = {}
+                for key in row.keys():
+                    if isinstance(row[key], dict):
+                        for subkey, value in row[key].items():
+                            mkey = "%s.%s" % (key, subkey)
+                            out_row[mkey] = value
+                    else:
+                        out_row[key] = row[key]
+
+                csv_w.writerow(out_row)
         else:
-            out_f = open(args.output, 'w')
+            # Just dump to JSON to file
+            json.dump(json_data, out_f)
+    else:
+        sys.stderr.write("No data returned.\n")
+        sys.exit(66) #EX_NOINPUT
 
-        if not v_args["task_id"]:
-            try:
-                task_id = j.get("tasks", [None])[0]
-            except:
-                # Bad reply
-                sys.exit(69) #EX_UNAVAILABLE
-            v_args["task_id"] = task_id
-        state = "PENDING"
-        attempt = 0
-        while state == "PENDING" and attempt < args.task_wait_attempts:
+    if out_f and args.output != "-":
+        out_f.close()
+
+
+def _wait_for_task(ocarina, v_args, j, task_wait=True):
+    #TODO sam why
+    if not v_args["task_id"]:
+        try:
+            task_id = j.get("tasks", [None])[0]
+        except:
+            # Bad reply
+            sys.exit(69) #EX_UNAVAILABLE
+        v_args["task_id"] = task_id
+
+    state = "PENDING"
+    attempt = 0
+    if task_wait:
+        while state == "PENDING" and attempt < v_args["task_wait_attempts"]:
             attempt += 1
             sys.stderr.write("[WAIT] Giving Majora a minute to finish task %s (%d)...\n" % (v_args["task_id"], attempt))
-            time.sleep(60 * args.task_wait_minutes)
+            time.sleep(60 * v_args["task_wait_minutes"])
             status, j = ocarina.api.get_task(v_args["task_id"])
             state = j.get("task", {}).get("state", "UNKNOWN")
         sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
+    else:
+        status, j = ocarina.api.get_task(v_args["task_id"])
+        state = j.get("task", {}).get("state", "UNKNOWN")
 
-        json_data = j.get("data")
-        if json_data:
-            # try to flatten the non-object keys
-            if args.output_table:
-                keys = set([])
-                # collect all possible keys naively
-                for row in json_data:
-                    for key in row.keys():
-                        # Dip in one level
-                        if isinstance(row[key], dict):
-                            for subkey, value in row[key].items():
-                                mkey = "%s.%s" % (key, subkey)
-                                keys.add(mkey)
-                        else:
-                            keys.add(key)
-
-                # iterate and dump
-                csv_w = csv.DictWriter(out_f, fieldnames=keys, delimiter=args.output_table_delimiter)
-                csv_w.writeheader()
-
-                for row in json_data:
-                    out_row = {}
-                    for key in row.keys():
-                        if isinstance(row[key], dict):
-                            for subkey, value in row[key].items():
-                                mkey = "%s.%s" % (key, subkey)
-                                out_row[mkey] = value
-                        else:
-                            out_row[key] = row[key]
-
-                    csv_w.writerow(out_row)
-            else:
-                # Just dump to JSON to file
-                json.dump(json_data, out_f)
-        else:
-            sys.stderr.write("No data returned.\n")
-            sys.exit(66) #EX_NOINPUT
-
-        if args.output != "-":
-            out_f.close()
-
+    if state == "SUCCESS":
+        return status, j
+    elif state == "FAILED":
+        sys.exit(69) # EX_UNAVAILABLE
+    elif state == "PENDING":
+        # Not sure what the best error code is here, it's basically a timeout
+        # But so long as we distinguish from 66 EX_NOINPUT this is fine
+        sys.exit(65) # EX_DATAERR
+    else:
+        sys.exit(70) # EX_SOFTWARE
 
 
 def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
 
     if args.task_id:
-        status, j = ocarina.api.get_task(v_args["task_id"])
-        #TODO move this to part of emit
-        if j.get("task", {}).get("state", "") != "SUCCESS":
-            return
+        j = {}
     else:
         j = util.emit(ocarina, ENDPOINTS["api.pag.qc.get"], v_args)
 
-    #TODO sam why
-    if args.task_wait:
-        if not v_args["task_id"]:
-            try:
-                task_id = j.get("tasks", [None])[0]
-            except:
-                # Bad reply
-                sys.exit(69) #EX_UNAVAILABLE
-            v_args["task_id"] = task_id
-        state = "PENDING"
-        attempt = 0
-        while state == "PENDING" and attempt < args.task_wait_attempts:
-            attempt += 1
-            sys.stderr.write("[WAIT] Giving Majora a minute to finish task %s (%d)...\n" % (v_args["task_id"], attempt))
-            time.sleep(60 * args.task_wait_minutes)
-            status, j = ocarina.api.get_task(v_args["task_id"])
-            state = j.get("task", {}).get("state", "UNKNOWN")
-        sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
+    status, j =_wait_for_task(ocarina, v_args, j, task_wait=args.task_wait)
 
     if args.mode.lower() == "pagfiles":
         if "get" not in j or "count" not in j["get"]:
@@ -931,34 +947,14 @@ def wrap_get_sequencing(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
 
     if args.task_id:
-        status, j = ocarina.api.get_task(v_args["task_id"])
-        #TODO move this to part of emit
-        if j.get("task", {}).get("state", "") != "SUCCESS":
-            return
+        j = {}
     else:
         if args.faster:
             j = util.emit(ocarina, ENDPOINTS["api.process.sequencing.get2"], v_args)
         else:
             j = util.emit(ocarina, ENDPOINTS["api.process.sequencing.get"], v_args)
 
-    #TODO sam why
-    if args.task_wait:
-        if not v_args["task_id"]:
-            try:
-                task_id = j.get("tasks", [None])[0]
-            except:
-                # Bad reply
-                sys.exit(69) #EX_UNAVAILABLE
-            v_args["task_id"] = task_id
-        state = "PENDING"
-        attempt = 0
-        while state == "PENDING" and attempt < args.task_wait_attempts:
-            attempt += 1
-            sys.stderr.write("[WAIT] Giving Majora a minute to finish task %s (%d)...\n" % (v_args["task_id"], attempt))
-            time.sleep(60 * args.task_wait_minutes)
-            status, j = ocarina.api.get_task(v_args["task_id"])
-            state = j.get("task", {}).get("state", "UNKNOWN")
-        sys.stderr.write("[WAIT] Finished waiting with status %s (%d)...\n" % (state, attempt))
+    status, j =_wait_for_task(ocarina, v_args, j, task_wait=args.task_wait)
 
     if "get" not in j or "count" not in j["get"]:
         # Bad reply

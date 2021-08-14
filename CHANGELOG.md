@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.44.0 2021-08-14
+### Changed
+* Util function `_wait_for_task` now controls all task result fetching for commands to remove significant code duplication
+* `get sequencing` and `get sequencing --faster` have a configuration stanza to correctly support OAuth with `majora2.view_biosampleartifact` scope
+* `api.majora.task.get` has a configuration stanza to correctly support scopeless OAuth
+* `get pag`, `get dataview` and `get sequencing` will correctly support using `--task-id` (with or without `--task-wait`) to pick up a wait loop that was interrupted without issuing another task request
+* Improved sysexit error codes for task waiting failure modes
+
 ## 0.43.0 2021-08-11
 ### Changed
 * `pag suppress` has a configuration stanza to correctly support OAuth with `can_suppress_pags_via_api` scope
