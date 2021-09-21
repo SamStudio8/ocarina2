@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.45.0 2021-08-21
+### Added
+* New experimental (unsupported) functions added to importable API client
+    * `put_force_linked_biosample`
+    * `put_library`
+    * `put_sequencing`
+### Fixed
+* `library_primers` and `library_protocol` are now correctly sent to Majora when using the singular `--biosample` option for `put library`
+
 ## 0.44.0 2021-08-14
 ### Changed
 * Util function `_wait_for_task` now controls all task result fetching for commands to remove significant code duplication
