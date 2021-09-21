@@ -213,6 +213,7 @@ def cli():
     parser.add_argument("--oauth", help="use experimental OAuth authorization", action="store_true", default=False)
     parser.add_argument("--stream", help="use streaming requests where appropriate", action="store_true", default=False)
     parser.add_argument("--boring", help="suppress `rich` printing in favour of dull boring printing", action="store_true", default=False)
+    parser.add_argument("--print-config", help="dump config and exit, disregarding all other options", action="store_true", default=False)
 
     action_parser = parser.add_subparsers()
 
@@ -524,6 +525,9 @@ X8%%S:              .8 8S888    :8.88S@:
     ocarina.sudo_as = args.sudo_as if hasattr(args, "sudo_as") else None
     ocarina.interactive = True
 
+    if args.print_config:
+        print(ocarina.config)
+        sys.exit(0)
 
     if hasattr(args, "func"):
         metadata = {}
