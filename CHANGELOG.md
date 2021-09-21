@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * `put_sequencing`
 * `--print-config` option will dump out the Ocarina configuration (including secrets) for inspection
 ### Changed
-* `MAJORA_TOKENS_FILE` config key allows the tokens cache to be placed in a user-determined location (otherwise defaults to existing `~/.ocarina-tokens`)
+* `MAJORA_TOKENS_FILE` config option (supported both by `--env` and `~/.ocarina` JSON) allows the tokens cache to be placed in a user-determined location (otherwise defaults to existing `~/.ocarina-tokens`)
 ### Fixed
 * `library_primers` and `library_protocol` are now correctly sent to Majora when using the singular `--biosample` option for `put library`
 

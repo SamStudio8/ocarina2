@@ -35,7 +35,7 @@ def get_config(env=False):
             "MAJORA_DOMAIN": os.getenv("MAJORA_DOMAIN"),
             "MAJORA_USER": os.getenv("MAJORA_USER"),
             "MAJORA_TOKEN": os.getenv("MAJORA_TOKEN"),
-            "MAJORA_TOKENS_FILE": os.getenv("MAJORA_TOKENS_FILE", os.path.expanduser("~/.ocarina-tokens")),
+            "MAJORA_TOKENS_FILE": os.path.expanduser( os.getenv("MAJORA_TOKENS_FILE", "~/.ocarina-tokens") ),
             "CLIENT_ID": os.getenv("MAJORA_CLIENT_ID"),
             "CLIENT_SECRET": os.getenv("MAJORA_CLIENT_SECRET"),
             "OCARINA_NO_BANNER": os.getenv("OCARINA_NO_BANNER", 0),
