@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * `put_force_linked_biosample`
     * `put_library`
     * `put_sequencing`
+### Changed
+* `MAJORA_TOKENS_FILE` config key allows the tokens cache to be placed in a user-determined location (otherwise defaults to existing `~/.ocarina-tokens`)
 ### Fixed
 * `library_primers` and `library_protocol` are now correctly sent to Majora when using the singular `--biosample` option for `put library`
 

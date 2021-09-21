@@ -723,7 +723,7 @@ def wrap_oauth_refresh(ocarina, args, metadata={}, metrics={}):
         if ocarina.oauth_token:
             print("Token with scope '%s' refreshed successfully" % " ".join(args.scopes))
     else:
-        for scope in util.oauth_load_tokens():
+        for scope in util.oauth_load_tokens(ocarina.config["MAJORA_TOKENS_FILE"]):
             ocarina.oauth_session, ocarina.oauth_token = util.handle_oauth(ocarina.config, scope, force_refresh=True)
             if ocarina.oauth_token:
                 print("Token with scope '%s' refreshed successfully" % scope)
