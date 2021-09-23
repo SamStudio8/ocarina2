@@ -45,6 +45,8 @@ class OcarinaAPI:
             metadata=None):
 
         #TODO Some sort of validation of Biosamples?
+        if not metadata:
+            metadata = {}
         payload = {
             "biosamples": biosamples,
             "library_layout_config": library_layout_config,
