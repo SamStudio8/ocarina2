@@ -217,6 +217,7 @@ def cli():
     action_parser = parser.add_subparsers()
 
     empty_parser = action_parser.add_parser("empty")
+    empty_parser.add_argument("--sudo-as", required=False)
 
     subparsers = empty_parser.add_subparsers(title="artifact")
     empty_biosample_parser = subparsers.add_parser("biosample", parents=[empty_parser], add_help=False,
