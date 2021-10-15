@@ -213,6 +213,7 @@ def cli():
     parser.add_argument("--oauth", help="use experimental OAuth authorization", action="store_true", default=False)
     parser.add_argument("--stream", help="use streaming requests where appropriate", action="store_true", default=False)
     parser.add_argument("--boring", help="suppress `rich` printing in favour of dull boring printing", action="store_true", default=False)
+    parser.add_argument("--print-config", help="dump config and exit, disregarding all other options", action="store_true", default=False)
 
     action_parser = parser.add_subparsers()
 
@@ -530,6 +531,9 @@ X8%%S:              .8 8S888    :8.88S@:
     ocarina.sudo_as = args.sudo_as if hasattr(args, "sudo_as") else None
     ocarina.interactive = True
 
+    if args.print_config:
+        print(ocarina.config)
+        sys.exit(0)
 
     if hasattr(args, "func"):
         metadata = {}
@@ -578,11 +582,12 @@ def wrap_force_biosample_emit(ocarina, args, metadata={}, metrics={}):
             print("Cannot provide --sender-sample-id with --ids")
             sys.exit(64) #EX_USAGE
         payload = {"biosamples": v_args["ids"]}
+        util.emit(ocarina, ENDPOINTS["api.artifact.biosample.addempty"], payload)
     else:
-        payload = {"biosamples": [
-            { "central_sample_id": v_args["central_sample_id"], "sender_sample_id": v_args["sender_sample_id"] },
-        ]}
-    util.emit(ocarina, ENDPOINTS["api.artifact.biosample.addempty"], payload)
+        success, obj = ocarina.api.put_force_linked_biosample(
+            v_args["central_sample_id"],
+            v_args["sender_sample_id"],
+        )
 
 def wrap_single_biosample_emit(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
@@ -728,7 +733,7 @@ def wrap_oauth_refresh(ocarina, args, metadata={}, metrics={}):
         if ocarina.oauth_token:
             print("Token with scope '%s' refreshed successfully" % " ".join(args.scopes))
     else:
-        for scope in util.oauth_load_tokens():
+        for scope in util.oauth_load_tokens(ocarina.config["MAJORA_TOKENS_FILE"]):
             ocarina.oauth_session, ocarina.oauth_token = util.handle_oauth(ocarina.config, scope, force_refresh=True)
             if ocarina.oauth_token:
                 print("Token with scope '%s' refreshed successfully" % scope)
@@ -1112,16 +1117,20 @@ def wrap_get_sequencing(ocarina, args, metadata={}, metrics={}):
 
 def wrap_sequencing_emit(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
-
-    payload = {
-        "metadata": metadata,
-        "library_name": v_args["library_name"],
-        "run_group": v_args["run_group"],
-        "runs": [
-            v_args,
-        ]
-    }
-    util.emit(ocarina, ENDPOINTS["api.process.sequencing.add"], payload)
+    success, obj = ocarina.api.put_sequencing(
+        run_name = v_args["run_name"],
+        library_name = v_args["library_name"],
+        instrument_make = v_args["instrument_make"],
+        instrument_model = v_args["instrument_model"],
+        bioinfo_pipe_name = v_args["bioinfo_pipe_name"],
+        bioinfo_pipe_version = v_args["bioinfo_pipe_version"],
+        end_time = v_args["end_time"],
+        flowcell_id = v_args["flowcell_id"],
+        flowcell_type = v_args["flowcell_type"],
+        run_group = v_args["run_group"],
+        sequencing_id = v_args["sequencing_id"],
+        start_time = v_args["start_time"],
+    )
 
 def wrap_library_emit(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
@@ -1147,9 +1156,10 @@ def wrap_library_emit(ocarina, args, metadata={}, metrics={}):
                 "library_source": entry[1],
                 "library_selection": entry[2],
                 "library_strategy": entry[3],
+                "library_protocol": entry[4],
+                "library_primers": entry[5],
                 "sequencing_org_received_date": sequencing_org_received_date,
             })
-        del v_args["biosample"]
 
     elif args.biosamples:
         if not args.apply_all_library:
@@ -1167,12 +1177,17 @@ def wrap_library_emit(ocarina, args, metadata={}, metrics={}):
                 "library_primers": args.apply_all_library[4],
                 "sequencing_org_received_date": sequencing_org_received_date,
             })
-        del v_args["apply_all_library"]
-        del v_args["biosamples"]
 
-    v_args["metadata"] = metadata
-    v_args["biosamples"] = submit_biosamples
-    util.emit(ocarina, ENDPOINTS["api.artifact.library.add"], v_args)
+    success, obj = ocarina.api.put_library(
+        library_name = v_args["library_name"],
+        biosamples = submit_biosamples,
+        library_layout_config = v_args["library_layout_config"],
+        library_seq_kit = v_args["library_seq_kit"],
+        library_seq_protocol = v_args["library_seq_protocol"],
+        library_layout_insert_length = v_args["library_layout_insert_length"],
+        library_layout_read_length = v_args["library_layout_read_length"],
+        metadata = metadata
+    )
 
 def wrap_digitalresource_emit(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)

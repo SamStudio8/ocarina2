@@ -40,6 +40,7 @@ Edit the configuration and supply to provide the required parameters:
 * `CLIENT_SECRET` your OAuth client secret
 * `OCARINA_QUIET` set to anything non-zero (`0`) to suppress all non-output information
 * `OCARINA_NO_BANNER` set to anything non-zero (`0`) to suppress the large welcoming ocarina
+* `MAJORA_TOKENS_FILE` a location to save OAuth refresh tokens
 
 Alternatively, you can specify `--env` and set these configuration parameters in your environment.
 

@@ -5,7 +5,7 @@ import hashlib
 from datetime import datetime
 
 import requests
-from requests_oauthlib import OAuth2Session
+from requests_oauthlib import OAuth2Session, TokenUpdated
 
 from . import version
 
@@ -18,19 +18,24 @@ def get_config(env=False):
             with open(config_path) as config_fh:
                 try:
                     config = json.load(config_fh)
+                    if "MAJORA_TOKENS_FILE" not in config:
+                        config["MAJORA_TOKENS_FILE"] = os.path.expanduser("~/.ocarina-tokens")
+                    elif '~' in config["MAJORA_TOKENS_FILE"]:
+                        config["MAJORA_TOKENS_FILE"] = os.path.expanduser(config["MAJORA_TOKENS_FILE"])
                     return config
                 except json.decoder.JSONDecodeError:
                     sys.stderr.write("%s does not appear to be valid JSON" % config_path)
                     sys.exit(78) #EX_CONFIG
         else:
             sys.stderr.write('''No configuration file found.\nCopy the command from below to initialise,\nthen edit the file and fill in the configration keys.\n''')
-            sys.stderr.write('''echo '{"MAJORA_DOMAIN": "https:\\...\", "MAJORA_USER": "", "MAJORA_TOKEN": "", "CLIENT_ID": "", "CLIENT_SECRET": "", "OCARINA_NO_BANNER": 0, "OCARINA_QUIET": 0}' > ~/.ocarina\n''')
+            sys.stderr.write('''echo '{"MAJORA_DOMAIN": "https:\\...\", "MAJORA_USER": "", "MAJORA_TOKEN": "", "CLIENT_ID": "", "CLIENT_SECRET": "", "OCARINA_NO_BANNER": 0, "OCARINA_QUIET": 0, "MAJORA_TOKENS_FILE": "~/.ocarina-tokens"}' > ~/.ocarina\n''')
             sys.exit(78) #EX_CONFIG
     else:
         config = {
             "MAJORA_DOMAIN": os.getenv("MAJORA_DOMAIN"),
             "MAJORA_USER": os.getenv("MAJORA_USER"),
             "MAJORA_TOKEN": os.getenv("MAJORA_TOKEN"),
+            "MAJORA_TOKENS_FILE": os.path.expanduser( os.getenv("MAJORA_TOKENS_FILE", "~/.ocarina-tokens") ),
             "CLIENT_ID": os.getenv("MAJORA_CLIENT_ID"),
             "CLIENT_SECRET": os.getenv("MAJORA_CLIENT_SECRET"),
             "OCARINA_NO_BANNER": os.getenv("OCARINA_NO_BANNER", 0),
@@ -41,51 +46,51 @@ def get_config(env=False):
             sys.exit(78) #EX_CONFIG
         return config
 
-def oauth_load_tokens():
-    config_path = os.path.expanduser("~/.ocarina-tokens")
-    if os.path.exists(config_path):
-        with open(config_path) as config_fh:
+def oauth_load_tokens(tokens_path):
+    if os.path.exists(tokens_path):
+        with open(tokens_path) as config_fh:
             try:
                 config = json.load(config_fh)
                 return config
             except json.decoder.JSONDecodeError:
-                sys.stderr.write("%s does not appear to be valid JSON" % config_path)
+                sys.stderr.write("%s does not appear to be valid JSON" % tokens_path)
                 sys.exit(78) #EX_CONFIG
     else:
         return {}
 
-def oauth_save_token(token):
-    tokens = oauth_load_tokens()
+def oauth_save_token(tokens_path, token):
+    tokens = oauth_load_tokens(tokens_path)
     scope = " ".join(token["scope"])
     tokens[scope] = token
 
-    config_path = os.path.expanduser("~/.ocarina-tokens")
-    with open(config_path, 'w') as config_fh:
+    with open(tokens_path, 'w') as config_fh:
         json.dump(tokens, config_fh)
 
 def handle_oauth(config, oauth_scope, force_refresh=False, interactive=True):
-    tokens = oauth_load_tokens()
+    tokens = oauth_load_tokens(config["MAJORA_TOKENS_FILE"])
     if oauth_scope in tokens:
         # Check that token is valid
         if datetime.fromtimestamp(tokens[oauth_scope]["expires_at"]) <= datetime.now():
             if interactive:
                 session, token = oauth_grant_to_token(config, oauth_scope)
-                oauth_save_token(token)
+                oauth_save_token(config["MAJORA_TOKENS_FILE"], token)
             else:
                 # Return None in non-interactive as we can't get a token this way
                 return None, None
         else:
-            session = OAuth2Session(
-                    client_id=config["CLIENT_ID"],
-                    token=tokens[oauth_scope],
-                    scope=oauth_scope,
-                    auto_refresh_url=config["MAJORA_DOMAIN"]+"o/token/",
-                    auto_refresh_kwargs={
-                        "client_id": config["CLIENT_ID"],
-                        "client_secret": config["CLIENT_SECRET"],
-                    },
-                    token_updater=oauth_save_token,
-            )
+            try:
+                session = OAuth2Session(
+                        client_id=config["CLIENT_ID"],
+                        token=tokens[oauth_scope],
+                        scope=oauth_scope,
+                        auto_refresh_url=config["MAJORA_DOMAIN"]+"o/token/",
+                        auto_refresh_kwargs={
+                            "client_id": config["CLIENT_ID"],
+                            "client_secret": config["CLIENT_SECRET"],
+                        },
+                )
+            except TokenUpdated as e:
+                oauth_save_token(config["MAJORA_TOKENS_FILE"], token)
 
             if force_refresh:
                 #TODO This would actually force a double refresh in the case where the session is update automatically but whatever
@@ -94,14 +99,14 @@ def handle_oauth(config, oauth_scope, force_refresh=False, interactive=True):
                     "client_secret": config["CLIENT_SECRET"],
                 }
                 token = session.refresh_token(config["MAJORA_DOMAIN"]+"o/token/", **refresh_params)
-                oauth_save_token(token)
+                oauth_save_token(config["MAJORA_TOKENS_FILE"], token)
 
             token = tokens[oauth_scope]
     else:
         # No scoped token
         if interactive:
             session, token = oauth_grant_to_token(config, oauth_scope)
-            oauth_save_token(token)
+            oauth_save_token(config["MAJORA_TOKENS_FILE"], token)
         else:
             # Return None in non-interactive as we can't get a token this way
             return None, None
