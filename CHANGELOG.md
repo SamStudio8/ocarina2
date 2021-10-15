@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.44.1 2021-10-13
+## 0.44.2 2021-10-15
+### Added
+* `oauth authorise` will authorise an OAuth token for a particular endpoint for later use
 ### Changed
 * `empty` subcommand supports `--sudo-as` command line option
 

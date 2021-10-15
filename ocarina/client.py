@@ -475,6 +475,11 @@ def cli():
     oauth_refresh_parser.add_argument("--scopes", required=False, nargs='+')
     oauth_refresh_parser.set_defaults(func=wrap_oauth_refresh)
 
+    oauth_authorise_parser = oauth_subparsers.add_parser("authorise", parents=[oauth_parser], add_help=False,
+            help="Authorise against a particular endpoint")
+    oauth_authorise_parser.add_argument("--endpoint", required=True)
+    oauth_authorise_parser.set_defaults(func=wrap_oauth_authorise)
+
 
     pag_parser = action_parser.add_parser("pag")
     pag_subparsers = pag_parser.add_subparsers(title="actions")
@@ -727,6 +732,22 @@ def wrap_oauth_refresh(ocarina, args, metadata={}, metrics={}):
             ocarina.oauth_session, ocarina.oauth_token = util.handle_oauth(ocarina.config, scope, force_refresh=True)
             if ocarina.oauth_token:
                 print("Token with scope '%s' refreshed successfully" % scope)
+
+# TODO Could be merged into wrap_oauth_refresh
+def wrap_oauth_authorise(ocarina, args, metadata={}, metrics={}):
+    if args.endpoint in ENDPOINTS:
+        try:
+            scope = ENDPOINTS[args.endpoint]["scope"]
+        except TypeError:
+            sys.stderr.write("%s endpoint is not OAuth compatible and has no defined scope\n" % args.endpoint)
+            sys.exit(78) #EX_CONFIG
+    else:
+        sys.stderr.write("%s endpoint is not a valid endpoint\n" % args.endpoint)
+        sys.exit(78) #EX_CONFIG
+
+    ocarina.oauth_session, ocarina.oauth_token = util.handle_oauth(ocarina.config, scope, force_refresh=True)
+    if ocarina.oauth_token:
+        print("Token with scope '%s' refreshed successfully" % scope)
 
 def wrap_get_dataview(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
