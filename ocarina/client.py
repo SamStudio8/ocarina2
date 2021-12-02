@@ -421,6 +421,7 @@ def cli():
     get_pag_parser.add_argument("--public", action="store_true")
     get_pag_parser.add_argument("--private", action="store_true")
 
+    get_pag_parser.add_argument("--published-before", type=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').strftime('%Y-%m-%d'))
     get_pag_parser.add_argument("--published-after", type=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').strftime('%Y-%m-%d'))
     get_pag_parser.add_argument("--suppressed-after", type=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').strftime('%Y-%m-%d'))
 
