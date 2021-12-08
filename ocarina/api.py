@@ -22,12 +22,17 @@ class OcarinaAPI:
         j = util.emit(self.ocarina, self.endpoints[endpoint], payload, quiet=True)
         return self.response_to_user(j, j)
 
-    def put_force_linked_biosample(self, central_sample_id, sender_sample_id):
+    # NOTE samstudio8 2021-12-08: empty biosamples can now be tagged with key-value metadata
+    def put_force_linked_biosample(self, central_sample_id, sender_sample_id, metadata=None):
+        if not metadata:
+            metadata = {}
+
         payload = {
             "biosamples": [
                 {
                     "central_sample_id": central_sample_id,
                     "sender_sample_id": sender_sample_id,
+                    "metadata": metadata,
                 },
             ],
         }

@@ -229,6 +229,7 @@ def cli():
 
     single_or_multi_empty.add_argument("--central-sample-id")
     empty_biosample_parser.add_argument("--sender-sample-id", "--local-sample-id")
+    empty_biosample_parser.add_argument("-m", "--metadata", action='append', nargs=3, metavar=('tag', 'key', 'value'))
     empty_biosample_parser.set_defaults(func=wrap_force_biosample_emit)
 
     info_parser = action_parser.add_parser("info")
@@ -578,6 +579,8 @@ def wrap_force_biosample_emit(ocarina, args, metadata={}, metrics={}):
     v_args = vars(args)
 
     if v_args.get("ids"):
+        if len(metadata) > 0:
+            sys.stderr.write("[WARN] --metadata is not compatible with --ids and will be ignored\n")
         sid = v_args.get("sender_sample_id")
         if sid:
             print("Cannot provide --sender-sample-id with --ids")
@@ -588,6 +591,7 @@ def wrap_force_biosample_emit(ocarina, args, metadata={}, metrics={}):
         success, obj = ocarina.api.put_force_linked_biosample(
             v_args["central_sample_id"],
             v_args["sender_sample_id"],
+            metadata=metadata,
         )
 
 def wrap_single_biosample_emit(ocarina, args, metadata={}, metrics={}):
