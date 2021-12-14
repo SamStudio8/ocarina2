@@ -5,11 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## 0.47.1 2021-12-08
-## Changed
+### Changed
 * `empty biosample` command now supports `--metadata` when uploading single empty biosamples
     * Note that using `--metadata` with `--ids` is not supported and will emit a client side warning
 * `api.put_force_linked_biosample` supports optional `metadata` parameter
-## Fixed
+### Fixed
 * Corrected wrong version number in last CHANGELOG entry (46.1 was labelled as 46.0)
 
 ## 0.46.1 2021-12-02
