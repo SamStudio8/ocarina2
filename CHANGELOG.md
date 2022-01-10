@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.47.2 2022-01-10
+### Changed
+* `.ocarina` file automatically created if it does not exist instead of suggesting the user creates it themselves
+* Configuration and token files are created with better default permissions by setting `umask`
+* Emits a warning if non-user read or write permissions are detected on the Ocarina configuration or token cache
+
 ## 0.47.1 2021-12-08
 ### Changed
 * `empty biosample` command now supports `--metadata` when uploading single empty biosamples

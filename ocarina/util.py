@@ -1,4 +1,5 @@
 import os
+import stat
 import sys
 import json
 import hashlib
@@ -9,12 +10,23 @@ from requests_oauthlib import OAuth2Session, TokenUpdated
 
 from . import version
 
+def check_and_warn_permissions(file_path):
+    file_mode = os.stat(file_path).st_mode
+    if bool(file_mode & (stat.S_IROTH | stat.S_IRGRP | stat.S_IWGRP | stat.S_IWOTH)): # if rw by group or other
+        file_mode_oct = oct(file_mode)[-3:]
+        sys.stderr.write("[WARN] Permissions %s for %s are too open and may allow other users to read or write your tokens!\n" % (file_mode_oct, file_path))
+        sys.stderr.write("[WARN] Ocarina strongly recommends updating permissions with the following command:\n")
+        sys.stderr.write("[WARN] $ chmod 600 %s\n" % (file_path))
+
 def get_config(env=False):
     config = None
 
     if not env:
         config_path = os.path.expanduser("~/.ocarina")
+
         if os.path.exists(config_path):
+            check_and_warn_permissions(config_path)
+
             with open(config_path) as config_fh:
                 try:
                     config = json.load(config_fh)
@@ -27,8 +39,11 @@ def get_config(env=False):
                     sys.stderr.write("%s does not appear to be valid JSON" % config_path)
                     sys.exit(78) #EX_CONFIG
         else:
-            sys.stderr.write('''No configuration file found.\nCopy the command from below to initialise,\nthen edit the file and fill in the configration keys.\n''')
-            sys.stderr.write('''echo '{"MAJORA_DOMAIN": "https:\\...\", "MAJORA_USER": "", "MAJORA_TOKEN": "", "CLIENT_ID": "", "CLIENT_SECRET": "", "OCARINA_NO_BANNER": 0, "OCARINA_QUIET": 0, "MAJORA_TOKENS_FILE": "~/.ocarina-tokens"}' > ~/.ocarina\n''')
+            sys.stderr.write('''No configuration file found.\nThe default ~/.ocarina file has been initialised. Edit the file and fill in the configration keys to use Ocarina.\n''')
+            old_mask = os.umask(0o177) # mask to 600
+            with open(config_path, 'w') as config_fh:
+                config_fh.write('''{"MAJORA_DOMAIN": "https://example.org/", "MAJORA_USER": "", "MAJORA_TOKEN": "", "CLIENT_ID": "", "CLIENT_SECRET": "", "OCARINA_NO_BANNER": 0, "OCARINA_QUIET": 0, "MAJORA_TOKENS_FILE": "~/.ocarina-tokens"}''')
+            os.umask(old_mask)
             sys.exit(78) #EX_CONFIG
     else:
         config = {
@@ -48,6 +63,8 @@ def get_config(env=False):
 
 def oauth_load_tokens(tokens_path):
     if os.path.exists(tokens_path):
+        check_and_warn_permissions(tokens_path)
+
         with open(tokens_path) as config_fh:
             try:
                 config = json.load(config_fh)
@@ -63,8 +80,10 @@ def oauth_save_token(tokens_path, token):
     scope = " ".join(token["scope"])
     tokens[scope] = token
 
+    old_mask = os.umask(0o177) # mask to 600
     with open(tokens_path, 'w') as config_fh:
         json.dump(tokens, config_fh)
+    os.umask(old_mask)
 
 def handle_oauth(config, oauth_scope, force_refresh=False, interactive=True):
     tokens = oauth_load_tokens(config["MAJORA_TOKENS_FILE"])
