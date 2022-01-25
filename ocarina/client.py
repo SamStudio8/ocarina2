@@ -880,7 +880,7 @@ def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
                     "file_size",
                     "pag_suppressed",
                     "pag_basic_qc",
-                ])
+                ]))
             for fdat in j["get"]["result"]:
                 #pag, kind, path, fhash, fsize, pag_supp, pag_qc = fdat
                 fdat[-1] = "PASS" if fdat[-1] else "FAIL"
