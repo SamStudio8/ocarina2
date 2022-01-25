@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.47.3 2022-01-25
+### Changed
+* `get pag --mode pagfiles` now supports prepending a header with `--output-header` and will translate suppression status to "SUPPRESSED" or "VALID" rather than printing a bool
+
 ## 0.47.2 2022-01-10
 ### Changed
 * `.ocarina` file automatically created if it does not exist instead of suggesting the user creates it themselves

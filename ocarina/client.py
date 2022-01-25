@@ -432,6 +432,7 @@ def cli():
 
     get_pag_parser.add_argument("--mode", default="")
 
+    get_pag_parser.add_argument("--output-header", action="store_true", help="add header to output (pagfiles mode only)")
     get_pag_parser.set_defaults(func=wrap_get_qc)
 
 
@@ -869,9 +870,21 @@ def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
             # Bad reply
             sys.exit(69) #EX_UNAVAILABLE
         if j["get"]["count"] >= 1:
+
+            if args.output_header:
+                print("\t".join([
+                    "pag_name",
+                    "file_type",
+                    "file_path",
+                    "file_hash",
+                    "file_size",
+                    "pag_suppressed",
+                    "pag_basic_qc",
+                ])
             for fdat in j["get"]["result"]:
-                #pag, kind, path, fhash, fsize, pag_qc = fdat
+                #pag, kind, path, fhash, fsize, pag_supp, pag_qc = fdat
                 fdat[-1] = "PASS" if fdat[-1] else "FAIL"
+                fdat[-2] = "SUPPRESSED" if fdat[-2] else "VALID" # wtf was i thinking this is gross
                 print("\t".join([str(x) for x in fdat]))
     elif args.ofield:
         csv_w = csv.DictWriter(sys.stdout, fieldnames=[f[1] for f in args.ofield], delimiter=args.odelimiter)
