@@ -59,7 +59,16 @@ def get_config(env=False, profile=None):
     else:
         if profile:
             sys.stderr.write("[WARN] Cannot use --profile with --env, profile will be ignored.\n")
+
         ffurf.from_env()
+
+        # Hack to keep legacy difference in env variable names working
+        # without having to edit the real environment or make a backwards
+        # incompatible change to the config
+        if not ffurf["CLIENT_ID"]:
+            ffurf["CLIENT_ID"] = os.getenv("MAJORA_CLIENT_ID")
+            ffurf["CLIENT_SECRET"] = os.getenv("MAJORA_CLIENT_SECRET")
+
         if not ffurf.is_valid():
             sys.stderr.write("[FAIL] MAJORA_DOMAIN, MAJORA_USER, MAJORA_TOKEN must be set in your environment.\n")
             sys.exit(78) #EX_CONFIG
