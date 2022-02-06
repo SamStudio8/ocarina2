@@ -67,8 +67,8 @@ def get_config(env=False, profile=None):
         # incompatible change to the config
         if not ffurf["CLIENT_ID"]:
             try:
-                ffurf["CLIENT_ID"] = os.getenv("MAJORA_CLIENT_ID")
-                ffurf["CLIENT_SECRET"] = os.getenv("MAJORA_CLIENT_SECRET")
+                ffurf.set_config_key("CLIENT_ID", os.getenv("MAJORA_CLIENT_ID"), source="env:MAJORA_CLIENT_ID")
+                ffurf.set_config_key("CLIENT_SECRET", os.getenv("MAJORA_CLIENT_SECRET"), source="env:MAJORA_CLIENT_SECRET")
             except TypeError:
                 pass
 
