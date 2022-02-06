@@ -10,6 +10,7 @@ requirements = [
     "tabulate",
     "requests_oauthlib",
     "rich",
+    "ffurf@git+https://github.com/SamStudio8/ffurf.git@30ff73c00e382597f5c33071030f8252f439f539",
 ]
 
 test_requirements = [

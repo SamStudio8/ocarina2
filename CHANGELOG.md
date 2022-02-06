@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.48.0 2022-02-06
+### Changed
+* Configuration is now handled with [Ffurf](https://github.com/SamStudio8/ffurf), tidying up `ocarina.util.get_config` as well as offering more flexibility
+* `--print-config` will additionally print a status line to clearly communicate whether the loaded configuration is valid
+* `--print-config` will load and print an invalid configuration for inspection before exiting non-zero, rather than exiting non-zero without displaying anything
+* `--print-config` will use `rich` to print a nice table of the configuration if `--boring` is not specified
+### Added
+* `OCARINA_CONF_FILE` environment variable can now be used to change the default `~/.ocarina` configuration location
+* Top level `--profile <profile>` parameter can now be used to select which configuration to load from a corresponding `profile.<profile>` object in Ocarina configuration JSON
+
 ## 0.47.3 2022-01-25
 ### Changed
 * `get pag --mode pagfiles` now supports prepending a header with `--output-header` and will translate suppression status to "SUPPRESSED" or "VALID" rather than printing a bool

@@ -8,6 +8,8 @@ from datetime import datetime
 import requests
 from requests_oauthlib import OAuth2Session, TokenUpdated
 
+from ffurf import FfurfConfig
+
 from . import version
 
 def check_and_warn_permissions(file_path):
@@ -15,51 +17,57 @@ def check_and_warn_permissions(file_path):
     if bool(file_mode & (stat.S_IROTH | stat.S_IRGRP | stat.S_IWGRP | stat.S_IWOTH)): # if rw by group or other
         file_mode_oct = oct(file_mode)[-3:]
         sys.stderr.write("[WARN] Permissions %s for %s are too open and may allow other users to read or write your tokens!\n" % (file_mode_oct, file_path))
-        sys.stderr.write("[WARN] Ocarina strongly recommends updating permissions with the following command:\n")
-        sys.stderr.write("[WARN] $ chmod 600 %s\n" % (file_path))
 
-def get_config(env=False):
-    config = None
+class OcarinaConfig(FfurfConfig):
+    def __init__(self):
+        super().__init__()
+        self.add_config_key("MAJORA_DOMAIN", default_value="https://example.org/")
+        self.add_config_key("MAJORA_USER")
+        self.add_config_key("MAJORA_TOKEN", secret=True)
+        self.add_config_key("MAJORA_TOKENS_FILE", default_value=os.path.expanduser("~/.ocarina-tokens"))
+        self.add_config_key("CLIENT_ID", partial_secret=4)
+        self.add_config_key("CLIENT_SECRET", secret=True)
+        self.add_config_key("OCARINA_NO_BANNER", key_type=int, default_value=0)
+        self.add_config_key("OCARINA_QUIET", key_type=int, default_value=0)
+
+def get_config(env=False, profile=None):
+
+    ffurf = OcarinaConfig()
 
     if not env:
-        config_path = os.path.expanduser("~/.ocarina")
+        config_path = os.getenv("OCARINA_CONF_FILE")
+        if not config_path:
+            config_path = os.path.expanduser("~/.ocarina")
 
-        if os.path.exists(config_path):
-            check_and_warn_permissions(config_path)
-
-            with open(config_path) as config_fh:
-                try:
-                    config = json.load(config_fh)
-                    if "MAJORA_TOKENS_FILE" not in config:
-                        config["MAJORA_TOKENS_FILE"] = os.path.expanduser("~/.ocarina-tokens")
-                    elif '~' in config["MAJORA_TOKENS_FILE"]:
-                        config["MAJORA_TOKENS_FILE"] = os.path.expanduser(config["MAJORA_TOKENS_FILE"])
-                    return config
-                except json.decoder.JSONDecodeError:
-                    sys.stderr.write("%s does not appear to be valid JSON" % config_path)
-                    sys.exit(78) #EX_CONFIG
-        else:
-            sys.stderr.write('''No configuration file found.\nThe default ~/.ocarina file has been initialised. Edit the file and fill in the configration keys to use Ocarina.\n''')
+        if not os.path.exists(config_path):
+            sys.stderr.write("No configuration file found.\nThe default configuration has been initialised at %s\nEdit the file and fill in the configration keys to use Ocarina.\n" % config_path)
             old_mask = os.umask(0o177) # mask to 600
             with open(config_path, 'w') as config_fh:
-                config_fh.write('''{"MAJORA_DOMAIN": "https://example.org/", "MAJORA_USER": "", "MAJORA_TOKEN": "", "CLIENT_ID": "", "CLIENT_SECRET": "", "OCARINA_NO_BANNER": 0, "OCARINA_QUIET": 0, "MAJORA_TOKENS_FILE": "~/.ocarina-tokens"}''')
+                config_fh.write(ffurf.to_json())
             os.umask(old_mask)
             sys.exit(78) #EX_CONFIG
-    else:
-        config = {
-            "MAJORA_DOMAIN": os.getenv("MAJORA_DOMAIN"),
-            "MAJORA_USER": os.getenv("MAJORA_USER"),
-            "MAJORA_TOKEN": os.getenv("MAJORA_TOKEN"),
-            "MAJORA_TOKENS_FILE": os.path.expanduser( os.getenv("MAJORA_TOKENS_FILE", "~/.ocarina-tokens") ),
-            "CLIENT_ID": os.getenv("MAJORA_CLIENT_ID"),
-            "CLIENT_SECRET": os.getenv("MAJORA_CLIENT_SECRET"),
-            "OCARINA_NO_BANNER": os.getenv("OCARINA_NO_BANNER", 0),
-            "OCARINA_QUIET": os.getenv("OCARINA_QUIET", 0),
-        }
-        if None in config.values():
-            sys.stderr.write('''MAJORA_DOMAIN, MAJORA_USER, MAJORA_TOKEN must be set in your environment.\n''')
+
+        sys.stderr.write("[CONF] Loading config %s with profile %s\n" % (config_path, profile))
+        check_and_warn_permissions(config_path)
+
+        try:
+            ffurf.from_json(config_path, profile=profile)
+        except json.decoder.JSONDecodeError:
+            sys.stderr.write("%s does not appear to be valid JSON" % config_path)
             sys.exit(78) #EX_CONFIG
-        return config
+
+    else:
+        if profile:
+            sys.stderr.write("[WARN] Cannot use --profile with --env, profile will be ignored.\n")
+        ffurf.from_env()
+        if not ffurf.is_valid():
+            sys.stderr.write("[FAIL] MAJORA_DOMAIN, MAJORA_USER, MAJORA_TOKEN must be set in your environment.\n")
+            sys.exit(78) #EX_CONFIG
+
+    if '~' in ffurf["MAJORA_TOKENS_FILE"]:
+        ffurf.set_config_key("MAJORA_TOKENS_FILE", os.path.expanduser(ffurf["MAJORA_TOKENS_FILE"]), source=None, append_source=True)
+
+    return ffurf
 
 def oauth_load_tokens(tokens_path):
     if os.path.exists(tokens_path):

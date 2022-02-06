@@ -10,6 +10,7 @@ import datetime
 from rich import box
 from rich.console import Console
 from rich.table import Table
+from rich import print as rich_print
 
 from . import util
 from . import parsers
@@ -214,6 +215,7 @@ def cli():
     parser.add_argument("--stream", help="use streaming requests where appropriate", action="store_true", default=False)
     parser.add_argument("--boring", help="suppress `rich` printing in favour of dull boring printing", action="store_true", default=False)
     parser.add_argument("--print-config", help="dump config and exit, disregarding all other options", action="store_true", default=False)
+    parser.add_argument("--profile", help="load configuration keys from JSON or TOML with profile.<profile> object", default=None)
 
     action_parser = parser.add_subparsers()
 
@@ -495,7 +497,23 @@ def cli():
     pag_suppress_parser.set_defaults(func=wrap_pag_suppress)
 
     args = parser.parse_args()
-    config = util.get_config(args.env)
+
+    config = util.get_config(args.env, profile=args.profile)
+    if args.print_config:
+        if args.boring:
+            print(config)
+            print("Config is: %s" % ("VALID" if config.is_valid() else "INVALID"))
+        else:
+            rich_print(config)
+            rich_print("Config is: %s" % ("[b green]VALID" if config.is_valid() else "[b red]INVALID"))
+
+        if config.is_valid():
+            sys.exit(0)
+
+    if not config.is_valid():
+        sys.stderr.write("[FAIL] Configuration not valid. Aborting.\n")
+        sys.stderr.write("       Perhaps you have configuration keys undefined or used a --profile that is not in your JSON\n")
+        sys.exit(78) #EX_CONFIG
 
     if "--partial" in sys.argv or "--update" in sys.argv:
         if not hasattr(args, "partial") or not args.partial:
@@ -533,10 +551,6 @@ X8%%S:              .8 8S888    :8.88S@:
     ocarina.stream = args.stream
     ocarina.sudo_as = args.sudo_as if hasattr(args, "sudo_as") else None
     ocarina.interactive = True
-
-    if args.print_config:
-        print(ocarina.config)
-        sys.exit(0)
 
     if hasattr(args, "func"):
         metadata = {}
