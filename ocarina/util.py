@@ -66,8 +66,11 @@ def get_config(env=False, profile=None):
         # without having to edit the real environment or make a backwards
         # incompatible change to the config
         if not ffurf["CLIENT_ID"]:
-            ffurf["CLIENT_ID"] = os.getenv("MAJORA_CLIENT_ID")
-            ffurf["CLIENT_SECRET"] = os.getenv("MAJORA_CLIENT_SECRET")
+            try:
+                ffurf["CLIENT_ID"] = os.getenv("MAJORA_CLIENT_ID")
+                ffurf["CLIENT_SECRET"] = os.getenv("MAJORA_CLIENT_SECRET")
+            except TypeError:
+                pass
 
         if not ffurf.is_valid():
             sys.stderr.write("[FAIL] MAJORA_DOMAIN, MAJORA_USER, MAJORA_TOKEN must be set in your environment.\n")
