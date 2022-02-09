@@ -894,12 +894,19 @@ def wrap_get_qc(ocarina, args, metadata={}, metrics={}):
                     "file_size",
                     "pag_suppressed",
                     "pag_basic_qc",
+                    "published_date",
                 ]))
             for fdat in j["get"]["result"]:
-                #pag, kind, path, fhash, fsize, pag_supp, pag_qc = fdat
-                fdat[-1] = "PASS" if fdat[-1] else "FAIL"
-                fdat[-2] = "SUPPRESSED" if fdat[-2] else "VALID" # wtf was i thinking this is gross
-                print("\t".join([str(x) for x in fdat]))
+                #pag, kind, path, fhash, fsize, pag_supp, pag_qc, published_date = fdat
+                # 0    1    2     3      4      5         6       7
+                fdat[6] = "PASS" if fdat[6] else "FAIL"
+                fdat[5] = "SUPPRESSED" if fdat[5] else "VALID" # wtf was i thinking this is gross
+
+                # Fix that pesky JSON datetime
+                fdat[7] = fdat[7].split('T')[0] # quite cheeky but just chopping off the time part of the JSON datetime
+
+                print("\t".join([ str(x) for x in fdat[:8] ])) # cut at col 8 to stop new cols breaking older versions
+
     elif args.ofield:
         csv_w = csv.DictWriter(sys.stdout, fieldnames=[f[1] for f in args.ofield], delimiter=args.odelimiter)
         csv_w.writeheader()
