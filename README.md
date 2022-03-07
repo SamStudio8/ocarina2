@@ -20,13 +20,15 @@ X8%%S:              .8 8S888    :8.88S@:
    ;t 8X.8;%8 8%
 ```
 
-# ocarina
+# ocarina2
 Ocarina is a simple Python requests program for shouting at the [Majora](https://github.com/SamStudio8/majora) API.
+This repo is for `ocarina2` and is designed to interact with `majora2`. It will not work with a future incarnation of Majora.
+Development of `ocarina2` serves only to maintain ongoing research use by COG-UK.
 
 ## Install
 
 ```
-pip install git+https://github.com/samstudio8/ocarina.git
+pip install git+https://github.com/climb-covid/ocarina2.git
 ```
 
 ## Configuration
@@ -43,6 +45,37 @@ Edit the configuration and supply to provide the required parameters:
 * `MAJORA_TOKENS_FILE` a location to save OAuth refresh tokens
 
 Alternatively, you can specify `--env` and set these configuration parameters in your environment.
+
+## Profile based configuration
+
+If you are using `majora-prod` and `majora-magenta` you can specify an `OCARINA_CONF_FILE` environment variable (without `--env`) to load a JSON configuration of profiles instead.
+The keys are the same as above, but are nested in a `profile` object as below:
+
+```
+{
+  "profile": {
+    "test": {
+        "MAJORA_DOMAIN": "https://majora-test.eu/",
+        "MAJORA_USER": "test-s.nicholls",
+        "MAJORA_TOKEN": "oauth",
+        "CLIENT_ID": "...",
+        "CLIENT_SECRET": "...",
+        "OCARINA_NO_BANNER": 0,
+        "OCARINA_QUIET": 0,
+        "MAJORA_TOKENS_FILE": "/path/for/test/tokenz"
+    },
+    "not-test": {
+        "MAJORA_DOMAIN": "https://majora.eu/",
+        "MAJORA_USER": "real-s.nicholls",
+        "MAJORA_TOKEN": "oauth",
+        "CLIENT_ID": "...",
+        "CLIENT_SECRET": "...",
+        "OCARINA_NO_BANNER": 0,
+        "OCARINA_QUIET": 0,
+        "MAJORA_TOKENS_FILE": "/path/for/real/tokenz"
+    }
+}
+```
 
 ## Documentation
 
